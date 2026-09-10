@@ -1,0 +1,1483 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Panthera Fitness</title>
+<meta name="description" content="Trainingsplan und Satzaufzeichnung fürs Krafttraining.">
+<meta name="theme-color" content="#07090F">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Panthera">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" sizes="180x180" href="../icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="../icons/icon-192.png">
+<style>
+:root { color-scheme: dark; }
+html { background: #07090F; }
+body { margin: 0; font: 14px system-ui, -apple-system, sans-serif; background: #07090F; }
+img { max-width: 100%; }
+[hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@500;600&family=IBM+Plex+Sans:wght@400;500;600&family=Oswald:wght@500;600&display=swap">
+<style>
+/* Panthera-Neon. Cyan und Magenta stammen aus den PantheraTV-Grafiken, der
+   Grund ist das Nachtschwarz mit Blaustich aus dem Logo-Bild. Bewusst nur ein
+   Farbschema: das Neon trägt nur auf dunklem Grund, auf Weiß bleicht es aus.
+   Deshalb keine prefers-color-scheme-Blöcke, dafür jede Farbe ausdrücklich
+   gesetzt, damit die Seite in jeder Umgebung gleich aussieht. */
+:root{
+  color-scheme:dark;
+  --bg:#07090F; --surface:#0E1421; --surface-2:#161E2E; --sunk:#04060B;
+  --line:#232D42; --line-2:#19222F;
+  --ink:#E9F1FA; --ink-2:#95A7BF; --ink-3:#62738C;
+  --cyan:#00C2FF; --magenta:#FF2BB0;
+  --accent:#00C2FF; --accent-2:#39D3FF; --on-accent:#03121B;
+  --ok:#00C2FF; --ok-bg:#08222F;
+  --danger:#FF4D6D; --focus:#FF2BB0;
+  --neon:linear-gradient(105deg,var(--cyan),var(--magenta));
+  --r:10px; --shell:480px;
+}
+
+*{box-sizing:border-box}
+body{
+  margin:0; background:var(--bg); color:var(--ink);
+  font-family:"IBM Plex Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  font-size:16px; line-height:1.45;
+  -webkit-text-size-adjust:100%; -webkit-font-smoothing:antialiased;
+  overscroll-behavior-y:none;
+}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;background:none;border:none;padding:0}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px;border-radius:4px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+.app{
+  max-width:var(--shell); margin:0 auto; min-height:100vh; min-height:100dvh;
+  background:var(--bg); display:flex; flex-direction:column;
+  border-left:1px solid var(--line-2); border-right:1px solid var(--line-2);
+}
+.bar{
+  position:sticky; top:0; z-index:20; background:var(--surface);
+  border-bottom:1px solid var(--line);
+  padding:calc(10px + env(safe-area-inset-top)) 14px 10px;
+  display:flex; align-items:center; gap:10px; min-height:52px;
+}
+/* Feine Neonlinie unter der Kopfleiste — die einzige Stelle, an der der
+   Verlauf dauerhaft sichtbar ist. */
+.bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--neon);opacity:.55}
+.bar h1{
+  font-family:Oswald,"IBM Plex Sans",sans-serif; font-weight:600;
+  font-size:20px; letter-spacing:.02em; margin:0; flex:1;
+  text-transform:uppercase; line-height:1.2;
+}
+.bar .sub{display:block;font-family:"IBM Plex Sans",sans-serif;font-weight:400;font-size:11px;letter-spacing:.09em;color:var(--ink-3);text-transform:uppercase}
+
+/* ---- Marke ---- */
+.defs{position:absolute;width:0;height:0;overflow:hidden}
+.mark{flex:0 0 auto;display:block;width:34px;height:34px;position:relative}
+.mark svg{width:100%;height:100%;display:block;fill:url(#pgrad)}
+/* Der Schimmer sitzt hinter dem Zeichen, nicht darauf — sonst frisst er die Kontur. */
+.mark::before{
+  content:"";position:absolute;inset:-6px;border-radius:50%;z-index:-1;
+  background:radial-gradient(circle,rgba(0,194,255,.45),rgba(255,43,176,.28) 55%,transparent 72%);
+  filter:blur(6px);
+}
+.wordmark{
+  font-family:Oswald,sans-serif; font-weight:600; line-height:1.15;
+  /* Passt sich der Gerätebreite an, damit „Panthera Fitness" auch auf einem
+     iPhone SE in einer Zeile bleibt. */
+  font-size:clamp(15px,4.4vw,19px); white-space:nowrap;
+  letter-spacing:.05em; text-transform:uppercase; display:block;
+  background:var(--neon); -webkit-background-clip:text; background-clip:text;
+  color:transparent; -webkit-text-fill-color:transparent;
+}
+/* Fällt der Verlaufstext aus, bleibt die Schrift lesbar. */
+@supports not ((-webkit-background-clip:text) or (background-clip:text)){
+  .wordmark{color:var(--ink);-webkit-text-fill-color:var(--ink);background:none}
+}
+.sumhead{position:relative;overflow:hidden;padding:4px 0 2px;display:flex;flex-direction:column;gap:6px}
+.sumhead>*{position:relative;z-index:1}
+.watermark{
+  position:absolute; right:-52px; top:-42px; width:200px; height:200px;
+  opacity:.14; fill:url(#pgrad); pointer-events:none; z-index:0;
+}
+.iconbtn{
+  min-width:44px; min-height:40px; padding:0 12px; border-radius:var(--r);
+  display:flex; align-items:center; justify-content:center; gap:6px;
+  font-size:13px; font-weight:600; color:var(--ink-2);
+  border:1px solid var(--line);
+}
+.iconbtn.on{background:var(--magenta);color:#12000B;border-color:var(--magenta)}
+.iconbtn.ghost{border-color:transparent}
+.iconbtn.nav{font-size:28px;line-height:1;padding:0 8px;color:var(--ink-2)}
+.iconbtn.nav:disabled{color:var(--ink-3);opacity:.35}
+.scroll{flex:1; padding:14px 14px 20px; display:flex; flex-direction:column; gap:12px}
+.dock{
+  position:sticky; bottom:0; z-index:20; background:var(--surface);
+  border-top:1px solid var(--line);
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  display:flex; gap:10px;
+}
+.dock:empty{display:none}
+
+.btn{
+  flex:1; min-height:50px; border-radius:var(--r); font-weight:600; font-size:16px;
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  background:var(--accent); color:var(--on-accent); border:1px solid var(--accent-2);
+  box-shadow:0 0 20px rgba(0,194,255,.28);
+}
+.btn.sec{background:var(--surface-2); color:var(--ink); border-color:var(--line)}
+.btn.sm{min-height:40px;font-size:14px;flex:0 0 auto;padding:0 14px}
+.btn.dgr{background:transparent;color:var(--danger);border-color:var(--danger)}
+.btn:disabled{opacity:.45}
+
+.eyebrow{
+  font-size:11px; font-weight:600; letter-spacing:.12em; text-transform:uppercase;
+  color:var(--ink-3); margin:0;
+}
+.muted{color:var(--ink-2);font-size:14px;margin:0}
+.tiny{color:var(--ink-3);font-size:12.5px;margin:0}
+
+/* ---- Person ---- */
+.whopill{
+  display:flex; align-items:center; gap:10px; width:100%; min-height:52px;
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:8px 12px; text-align:left;
+}
+.who-ini{
+  flex:0 0 auto; width:32px; height:32px; border-radius:50%;
+  background:var(--neon); color:#04121A; font-family:Oswald,sans-serif; font-weight:600;
+  font-size:13px; letter-spacing:.03em; display:flex; align-items:center; justify-content:center;
+}
+.who-name{flex:1;font-weight:600;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.who-more{flex:0 0 auto;font-size:12.5px;color:var(--cyan);font-weight:600}
+.prow{display:flex;align-items:stretch;border-bottom:1px solid var(--line-2)}
+.prow:last-child{border-bottom:none}
+.prow.on{background:var(--ok-bg)}
+.prow-main{flex:1;display:flex;align-items:center;gap:11px;padding:12px 14px;text-align:left;min-width:0}
+.prow-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
+.prow-txt b{font-size:15px;font-weight:600}
+.prow-txt i{font-style:normal;font-size:12.5px;color:var(--ink-3)}
+.prow-tools{flex:0 0 auto;display:flex;align-items:center}
+.prow-tools button{width:40px;min-height:44px;color:var(--ink-3);font-size:14px}
+
+/* ---- Tagesliste ---- */
+.days{display:flex;flex-direction:column;gap:10px}
+.day{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  display:flex; align-items:stretch; overflow:hidden;
+}
+.day-main{flex:1;text-align:left;padding:14px;display:flex;flex-direction:column;gap:3px;min-width:0}
+.day-name{font-family:Oswald,sans-serif;font-weight:600;font-size:22px;letter-spacing:.01em;text-transform:uppercase;line-height:1.15}
+.day-meta{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-size:12.5px;color:var(--ink-3)}
+.day-meta b{font-family:"IBM Plex Mono",monospace;font-weight:600;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.day-note{font-size:13px;color:var(--ink-2)}
+.day-go{
+  flex:0 0 46px; border-left:1px solid var(--line-2); background:var(--surface-2);
+  display:flex;align-items:center;justify-content:center;color:var(--ink-3);font-size:20px;
+}
+.day-tools{flex:0 0 auto;display:flex;flex-direction:column;border-left:1px solid var(--line-2)}
+.day-tools button{flex:1;width:44px;color:var(--ink-3);font-size:15px;border-bottom:1px solid var(--line-2)}
+.day-tools button:last-child{border-bottom:none}
+
+/* Laufende Einheit: die zweite Stelle mit Magenta, weil sie selten auftaucht
+   und dann sofort auffallen soll. Dunkler Grund statt Vollfläche, sonst wäre
+   der Text auf dem Neon nicht mehr lesbar. */
+.resume{
+  background:var(--surface); color:var(--ink); border-radius:var(--r);
+  padding:14px; display:flex; flex-direction:column; gap:8px;
+  border:1px solid var(--magenta); box-shadow:0 0 22px rgba(255,43,176,.22);
+}
+.resume .eyebrow{color:var(--magenta)}
+.resume-row{display:flex;gap:8px;align-items:center}
+.resume-name{font-family:Oswald,sans-serif;font-size:20px;font-weight:600;text-transform:uppercase;flex:1}
+.resume button{background:var(--accent);color:var(--on-accent);border-radius:8px;padding:8px 14px;font-weight:600;font-size:14px;min-height:40px}
+.resume button.x{background:transparent;color:var(--ink-2);border:1px solid var(--line)}
+
+/* ---- Trainingsfortschritt ---- */
+.steps{display:flex;gap:4px;margin-bottom:2px}
+.steps i{flex:1;height:4px;border-radius:2px;background:var(--sunk)}
+.steps i.done{background:var(--cyan)}
+.steps i.now{background:var(--magenta);box-shadow:0 0 10px rgba(255,43,176,.6)}
+
+.exhead{display:flex;flex-direction:column;gap:6px;padding:2px 0 4px}
+.exname{font-family:Oswald,sans-serif;font-weight:600;font-size:30px;line-height:1.1;letter-spacing:.005em;text-wrap:balance;margin:0}
+.exsub{font-size:13px;color:var(--ink-3);margin:0}
+.exmus{font-size:13px;color:var(--ink-2);margin:0}
+.target{display:flex;gap:8px;flex-wrap:wrap;margin-top:4px}
+.entryhint{margin:7px 0 0;font-size:12.5px;color:var(--ink-3);line-height:1.45}
+.chip{
+  font-family:"IBM Plex Mono",monospace; font-size:13px; font-weight:600;
+  background:var(--surface-2); border:1px solid var(--line); color:var(--ink-2);
+  padding:4px 9px; border-radius:6px; font-variant-numeric:tabular-nums;
+}
+.chip.key{background:var(--accent);border-color:var(--accent-2);color:var(--on-accent)}
+
+.sets{display:flex;flex-direction:column;gap:8px}
+.setrow{
+  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
+  padding:8px 10px; display:flex; align-items:center; gap:8px;
+}
+.setrow.filled{border-color:var(--ok);background:var(--ok-bg)}
+.setno{
+  font-family:Oswald,sans-serif; font-size:13px; font-weight:600; letter-spacing:.08em;
+  color:var(--ink-3); width:26px; flex:0 0 26px; text-transform:uppercase;
+}
+.setrow.filled .setno{color:var(--ok)}
+.field{flex:1;display:flex;align-items:center;background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding-right:9px;min-width:0}
+.setrow.filled .field{background:var(--surface)}
+.field input{
+  flex:1; min-width:0; width:100%; background:none; border:none; outline:none;
+  font-family:"IBM Plex Mono",monospace; font-weight:600; font-size:17px;
+  font-variant-numeric:tabular-nums; text-align:right;
+  padding:10px 6px 10px 10px; min-height:44px;
+}
+.field span{font-size:12px;color:var(--ink-3);font-weight:500;flex:0 0 auto}
+.plates{
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--ink-3);
+  padding:0 2px 0 30px; margin-top:-4px; letter-spacing:-.01em; line-height:1.5;
+}
+.plates:empty{display:none}
+.lastline{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:2px}
+.lastline p{flex:1;min-width:150px;font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-3);margin:0;font-variant-numeric:tabular-nums}
+.lastline p.prose{font-family:inherit;font-size:13.5px;color:var(--ink-2)}
+
+details.cues{background:var(--surface);border:1px solid var(--line);border-radius:var(--r)}
+details.cues summary{padding:12px 14px;font-size:14px;font-weight:600;color:var(--ink-2);list-style:none;min-height:44px;display:flex;align-items:center;gap:8px}
+details.cues summary::-webkit-details-marker{display:none}
+details.cues summary::before{content:"▸";color:var(--ink-3);font-size:12px}
+details.cues[open] summary::before{content:"▾"}
+details.cues ul{margin:0;padding:0 16px 14px 34px;display:flex;flex-direction:column;gap:6px}
+details.cues li{font-size:14px;color:var(--ink-2)}
+.cuehint{margin:0;padding:0 16px 14px 34px;font-size:13px;color:var(--ink-3);line-height:1.5}
+.cuehint b{color:var(--ink-2);font-weight:600}
+.cueimgs{display:flex;gap:8px;padding:0 14px 14px}
+.cueimgs button{flex:1;min-width:0;aspect-ratio:4/3;border:1px solid var(--line);border-radius:8px;overflow:hidden;background:var(--surface-2)}
+.cueimgs img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ---- Bildplätze im Editor ---- */
+.imgs{display:flex;gap:10px}
+.slot{
+  flex:1; min-width:0; aspect-ratio:4/3; position:relative; overflow:hidden;
+  border:1px dashed var(--line); border-radius:8px; background:var(--surface);
+  display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+.slot.has{border-style:solid;background:var(--sunk)}
+.slot input[type=file]{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}
+.slot em{font-style:normal;font-size:13px;font-weight:600;color:var(--ink-2);text-align:center;padding:10px;line-height:1.35}
+.slot img{width:100%;height:100%;object-fit:cover;display:block}
+.slot .del{
+  position:absolute; top:5px; right:5px; width:32px; height:32px; border-radius:50%;
+  background:rgba(10,13,14,.72); color:#fff; font-size:15px; z-index:2;
+  display:flex; align-items:center; justify-content:center; backdrop-filter:blur(3px);
+}
+.slot.busy em{color:var(--ink-3)}
+
+/* ---- Bild groß ---- */
+.lb{position:fixed;inset:0;z-index:60;background:rgba(6,8,9,.95);display:flex;align-items:center;justify-content:center;padding:16px}
+.lb img{max-width:100%;max-height:100%;object-fit:contain;border-radius:6px}
+.lb .close{
+  position:absolute; top:calc(12px + env(safe-area-inset-top)); right:14px;
+  width:44px; height:44px; border-radius:50%; background:rgba(255,255,255,.16); color:#fff;
+  font-size:20px; display:flex; align-items:center; justify-content:center;
+}
+
+/* ---- Editor ---- */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.exrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line-2)}
+.exrow:last-child{border-bottom:none}
+.exrow-main{flex:1;text-align:left;padding:12px 14px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.exrow-name{font-weight:600;font-size:15px;line-height:1.25}
+.exrow-meta{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.exrow-tools{flex:0 0 auto;display:flex;align-items:center}
+.exrow-tools button{width:38px;min-height:44px;color:var(--ink-3);font-size:14px}
+.expand{background:var(--surface-2);border-bottom:1px solid var(--line-2);padding:14px;display:flex;flex-direction:column;gap:12px}
+.f{display:flex;flex-direction:column;gap:5px}
+.f label{font-size:11px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-3)}
+.f input,.f select,.f textarea{
+  background:var(--surface); border:1px solid var(--line); border-radius:8px;
+  padding:11px 12px; font-size:16px; min-height:44px; width:100%; outline:none;
+}
+.f textarea{min-height:100px;resize:vertical;line-height:1.5;font-size:15px}
+.fnote{margin:2px 0 0;font-size:12.5px;color:var(--ink-3);line-height:1.45}
+.f input:focus,.f select:focus,.f textarea:focus{border-color:var(--focus)}
+.frow{display:flex;gap:10px}
+.frow>.f{flex:1;min-width:0}
+.stepper{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:8px;background:var(--surface);overflow:hidden;width:fit-content}
+.stepper button{width:46px;min-height:44px;font-size:20px;font-weight:600;color:var(--ink-2)}
+.stepper span{min-width:46px;text-align:center;font-family:"IBM Plex Mono",monospace;font-weight:600;font-size:17px;border-left:1px solid var(--line);border-right:1px solid var(--line);align-self:stretch;display:flex;align-items:center;justify-content:center}
+/* Ausrüstung: vier Felder im Raster statt einer Auswahlliste. Alle Möglichkeiten
+   auf einen Blick, und jedes Feld ist groß genug für den Daumen. */
+.seg{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.seg button{
+  min-height:46px; border:1px solid var(--line); border-radius:8px;
+  background:var(--surface); color:var(--ink-2); font-size:14px; font-weight:600;
+  padding:0 8px; display:flex; align-items:center; justify-content:center; text-align:center;
+}
+.seg button.on{
+  border-color:var(--cyan); color:var(--cyan); background:var(--ok-bg);
+  box-shadow:0 0 14px rgba(0,194,255,.18);
+}
+.check{display:flex;align-items:center;gap:9px;font-size:15px;color:var(--ink-2);min-height:44px}
+.check input{width:22px;height:22px;accent-color:var(--accent);flex:0 0 auto}
+.addbtn{
+  width:100%;min-height:48px;border:1px dashed var(--line);border-radius:var(--r);
+  color:var(--ink-2);font-weight:600;font-size:15px;background:var(--surface);
+}
+
+/* ---- Zusammenfassung / Verlauf ---- */
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r);overflow:hidden}
+.stat{background:var(--surface);padding:12px 10px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:Oswald,sans-serif;font-size:24px;font-weight:600;line-height:1.05;font-variant-numeric:tabular-nums}
+.stat span{font-size:10.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3);font-weight:600}
+.sumex{padding:12px 14px;border-bottom:1px solid var(--line-2)}
+.sumex:last-child{border-bottom:none}
+.sumex-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sumex-h b{font-size:15px;font-weight:600}
+.delta{font-family:"IBM Plex Mono",monospace;font-size:12.5px;font-weight:600;flex:0 0 auto}
+.delta.up{color:var(--ok)} .delta.flat{color:var(--ink-3)} .delta.down{color:var(--ink-3)}
+.sumex p{margin:3px 0 0;font-family:"IBM Plex Mono",monospace;font-size:13px;color:var(--ink-2);font-variant-numeric:tabular-nums}
+.sumex p.prev{color:var(--ink-3);font-size:12px}
+.hrow{width:100%;text-align:left;padding:13px 14px;border-bottom:1px solid var(--line-2);display:flex;align-items:baseline;gap:10px}
+.hrow:last-child{border-bottom:none}
+.hrow b{font-family:Oswald,sans-serif;font-size:16px;font-weight:600;text-transform:uppercase;flex:1}
+.hrow span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.hdet{padding:0 14px 12px;border-bottom:1px solid var(--line-2);background:var(--surface-2)}
+.hdet div{font-family:"IBM Plex Mono",monospace;font-size:12.5px;color:var(--ink-2);padding:4px 0;border-bottom:1px solid var(--line-2);display:flex;gap:10px;font-variant-numeric:tabular-nums}
+.hdet div:last-child{border-bottom:none}
+.hdet div i{font-style:normal;font-family:"IBM Plex Sans",sans-serif;flex:1;color:var(--ink)}
+
+.empty{padding:28px 16px;text-align:center;color:var(--ink-3);font-size:14px}
+.foot{display:flex;gap:8px;padding-top:2px}
+.foot button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--ink-2);background:var(--surface)}
+
+/* ---- Dialog ---- */
+.veil{position:fixed;inset:0;background:rgba(8,10,11,.55);z-index:50;display:flex;align-items:center;justify-content:center;padding:20px}
+.dlg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px}
+.dlg p{margin:0;font-size:15px;line-height:1.5}
+.dlg .row{display:flex;gap:8px}
+.dlginput{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:16px;min-height:44px;width:100%;outline:none}
+.dlginput:focus{border-color:var(--focus)}
+</style>
+
+<!-- Logo einmal als Symbol, überall per <use> eingesetzt. Steht bewusst außerhalb
+     von #root, weil render() dessen Inhalt komplett austauscht. -->
+<svg class="defs" aria-hidden="true" focusable="false"><defs>
+  <linearGradient id="pgrad" x1="0" y1="0" x2="1" y2="1">
+    <stop offset="0" stop-color="#00C2FF"/><stop offset="1" stop-color="#FF2BB0"/>
+  </linearGradient>
+  <symbol id="panthera" viewBox="0 0 158 164">
+    <path transform="translate(0.0298,-3.7888)" d="m 40.478488,13.353199 c -0.03779,0.0022 -0.07549,0.0056 -0.113281,0.0078 7.52e-4,0.0116 0.0014,0.02352 0.002,0.03516 0.03701,-0.01463 0.07444,-0.02804 0.111328,-0.04297 z m 38.021485,0.28125 C 16.758375,13.777287 -7.4417739,79.260352 16.753879,122.00945 c 0.0019,0.003 0.0039,0.005 0.0059,0.008 0.534193,0.7361 1.008143,1.51441 1.384766,2.34375 8.709489,14.03244 22.86731,25.3326 42.902344,30.57813 17.016575,4.45488 33.236734,2.4691 47.089841,-3.91211 0.39043,-0.27653 0.86839,-0.5144 1.43164,-0.69922 33.55318,-16.39505 52.49294,-58.88755 33.27735,-98.058595 -6.91426,-14.094746 -14.31818,-18.064892 -31.57032,-16.931641 -8.79477,0.577708 -9.27539,0.50589 -9.27539,-1.378906 0,-2.112076 -5.268487,-5.948594 -8.177731,-5.955078 -2.285804,-0.0051 -6.667884,5.529805 -11.914062,15.048828 -5.440933,9.872401 -7.620976,10.405226 -4.986328,1.21875 0.922172,-3.215428 0.922172,-3.215437 -7.25,0.880859 -11.530256,5.779532 -24.277262,19.355563 -25.792969,27.46875 -0.531105,2.842868 -2.055094,5.954796 -4,8.169922 -7.14835,8.14152 -8.199282,12.841984 -4.392578,19.650391 4.488141,8.02718 13.513667,14.50889 13.513672,9.70508 0,-3.89722 17.456949,-10.582162 19.320312,-7.39844 1.510857,2.58144 -6.242447,17.76753 -9.318359,18.25195 -3.174853,0.5 -3.174919,0.5 0.757812,4.75 5.904654,6.38101 17.375811,5.67103 18.65625,-1.15429 0.75477,-4.02327 6.70777,-11.048 13.730469,-16.20313 12.398222,-9.101013 14.075402,-18.37883 4.654297,-25.751951 -3.818159,-2.988158 -3.155802,-4.443389 1.201172,-2.638672 4.157333,1.722028 10.971223,9.631028 11.103513,12.888672 0.24132,5.942111 -0.40158,8.839981 -2.9082,13.109371 -1.65273,2.81501 -3.8166,9.74221 -5.7793,18.5 -3.586887,16.00542 -3.848225,16.20636 -21.457029,16.4043 -69.5793942,0.781 -75.5035775,-104.835738 -6.253906,-111.492187 6.111425,-0.587446 7.195622,-1.038849 10.796875,-4.498047 7.00401,-6.727731 13.378909,-7.197064 21.63867,-1.591797 2.86108,1.94158 4.22504,2.220561 8.38672,1.716797 C 126.59021,23.454624 96.291396,13.593289 78.499973,13.634449 Z M 8.0136444,16.044605 c -0.016289,2.59e-4 -0.032539,0.0017 -0.048828,0.002 3.688e-4,0.01061 0.00147,0.02074 0.00195,0.03125 0.015693,-0.01089 0.031086,-0.0227 0.046875,-0.0332 z M 139.51364,22.136402 c -0.0123,-0.02976 0.0167,0.08062 0.043,0.177735 0.004,-0.0041 0.008,-0.0076 0.0117,-0.01172 -0.0124,-0.04618 -0.0395,-0.129416 -0.0547,-0.166016 z M 37.464816,76.993824 c -0.0249,0.05704 -0.05002,0.114537 -0.07422,0.171875 0.01647,-0.01547 0.03406,-0.02971 0.05078,-0.04492 0.0076,-0.04232 0.01487,-0.08479 0.02344,-0.126953 z M 4.7441131,83.982106 c -0.00365,0.01684 -0.00612,0.03394 -0.00977,0.05078 0.00394,0.01217 0.00581,0.02494 0.00977,0.03711 1.987e-4,-0.02952 -2.07e-4,-0.05899 0,-0.08789 z M 54.578098,116.91765 c -0.0089,0.0385 -0.01587,0.0764 -0.01563,0.11719 10e-5,0.0125 0.0046,0.039 0.01563,0.0332 0.0055,-0.003 0.009,-0.0104 0.01172,-0.0195 0.0012,-0.0277 0.0023,-0.0566 0.0039,-0.0781 -1.51e-4,-10e-4 1.6e-4,-0.003 0,-0.004 -9.41e-4,-0.007 -0.0012,-0.0219 -0.002,-0.0234 -0.0043,-0.009 -0.0092,-0.017 -0.01367,-0.0254 z m -21.603516,31.54883 c -0.0201,0.0136 -0.03504,0.0342 -0.05273,0.0508 -0.0086,0.0129 -0.01652,0.0263 -0.02539,0.0391 0.024,-0.0233 0.0477,-0.0457 0.07031,-0.0703 0.005,-0.005 0.01406,-0.0235 0.0078,-0.0195 z m -10.556641,7.05664 c -0.03725,0.0465 -0.07384,0.0929 -0.113281,0.13672 -0.0174,0.0193 0.03929,-0.0334 0.05859,-0.0508 0.01888,-0.0283 0.03598,-0.0576 0.05469,-0.0859 z"/>
+  </symbol>
+</defs></svg>
+
+<div class="app" id="root"></div>
+
+<script>
+(function(){
+"use strict";
+
+/* ---------- Fassung ----------
+   Die einzigen Stellen, an denen sich Adrians Ausgabe von dieser unterscheidet.
+   build_variants.py ersetzt diese drei Zeichenketten; alles andere ist in beiden
+   Ausgaben Zeichen für Zeichen gleich, damit eine Korrektur nur einmal
+   geschrieben werden muss. */
+var UNTERTITEL="Krafttraining";
+var HOMETITEL="Panthera";
+/* Trennt die Speicherbereiche der beiden Ausgaben. Auf GitHub Pages liegen sie
+   auf derselben Domain, und der Browserspeicher gilt pro Domain, nicht pro
+   Pfad — ohne diesen Zusatz würden sich beide Apps gegenseitig überschreiben,
+   sobald jemand beide Adressen im selben Browser öffnet. */
+var SPEICHER="panthera";
+
+/* ---------- iOS-Metatags für den Home-Bildschirm ---------- */
+[["apple-mobile-web-app-capable","yes"],
+ ["apple-mobile-web-app-status-bar-style","black-translucent"],
+ ["apple-mobile-web-app-title",HOMETITEL],
+ ["theme-color","#07090F"]].forEach(function(m){
+  if(document.querySelector('meta[name="'+m[0]+'"]')) return;
+  var el=document.createElement("meta"); el.name=m[0]; el.content=m[1];
+  document.head.appendChild(el);
+});
+
+/* Symbol für den Home-Bildschirm. iOS nimmt dafür ausschließlich PNG, deshalb
+   wird das Logo einmal auf eine Leinwand gezeichnet. Der Umweg spart es, das
+   Bild als Base64 in die Datei zu legen. */
+(function appleIcon(){
+  var sym=document.getElementById("panthera");
+  if(!sym || document.querySelector('link[rel="apple-touch-icon"]')) return;
+  var S=180, pad=16, box=158, boy=164, k=(S-2*pad)/Math.max(box,boy);
+  var svg='<svg xmlns="http://www.w3.org/2000/svg" width="'+S+'" height="'+S+'" viewBox="0 0 '+S+' '+S+'">'+
+    '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">'+
+    '<stop offset="0" stop-color="#00C2FF"/><stop offset="1" stop-color="#FF2BB0"/></linearGradient></defs>'+
+    '<rect width="'+S+'" height="'+S+'" fill="#07090F"/>'+
+    '<g fill="url(#g)" transform="translate('+((S-box*k)/2)+','+((S-boy*k)/2)+') scale('+k+')">'+sym.innerHTML+'</g></svg>';
+  var im=new Image();
+  im.onload=function(){
+    try{
+      var c=document.createElement("canvas"); c.width=S; c.height=S;
+      c.getContext("2d").drawImage(im,0,0,S,S);
+      var l=document.createElement("link");
+      l.rel="apple-touch-icon"; l.setAttribute("sizes","180x180");
+      l.href=c.toDataURL("image/png");
+      document.head.appendChild(l);
+    }catch(e){}
+  };
+  im.onerror=function(){};
+  im.src="data:image/svg+xml;charset=utf-8,"+encodeURIComponent(svg);
+})();
+
+/* ---------- Speicher ----------
+   Je Person ein eigener Satz Schlüssel. Der Plan wandert später über die
+   gemeinsame Ablage zwischen den Geräten, der Verlauf bleibt ausdrücklich
+   dort, wo er aufgezeichnet wurde. */
+var NS="kraft."+SPEICHER+".";
+var PKEY=NS+"people";
+var KEY=NS+"v1", AKEY=NS+"v1.active";
+function readLS(k){ try{ var s=localStorage.getItem(k); return s?JSON.parse(s):null; }catch(e){ return null; } }
+function writeLS(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){} }
+function delLS(k){ try{ localStorage.removeItem(k); }catch(e){} }
+
+var uid=(function(){ var n=0; return function(p){ n++; return p+Date.now().toString(36)+n.toString(36); }; })();
+
+/* Ausrüstung. Steuert, was unter dem Gewichtsfeld steht: beim Langhantel die
+   Scheiben je Seite, bei der Kurzhantel die Gesamtlast beider Hanteln, beim
+   Körpergewicht die Zusatzlast. Beim Gerät ist die eingetragene Zahl bereits
+   die ganze Wahrheit. */
+var GEAR={barbell:"Langhantel", dumbbell:"Kurzhantel", machine:"Gerät", bodyweight:"Körpergewicht"};
+var GEAR_ORDER=["barbell","dumbbell","machine","bodyweight"];
+
+/* ---------- Bilder: IndexedDB statt localStorage ----------
+   Fotos vom Handy sprengen die rund 5 MB, die Safari für localStorage vergibt.
+   Die Bilder liegen deshalb verkleinert in einer eigenen Datenbank, der
+   Trainingsplan hält nur ihre Kennungen. imgCache spiegelt sie im Speicher,
+   damit das Zeichnen synchron bleibt. */
+var IMGDB="panthera-fitness-"+SPEICHER, IMGST="images";
+var imgCache={};
+
+function withDB(fn, onFail){
+  var r; try{ r=indexedDB.open(IMGDB,1); }catch(e){ if(onFail) onFail(); return; }
+  r.onupgradeneeded=function(){ try{ r.result.createObjectStore(IMGST); }catch(e){} };
+  r.onsuccess=function(){ fn(r.result); };
+  r.onerror=function(){ if(onFail) onFail(); };
+}
+function imgPut(id, dataUrl, done){
+  withDB(function(db){
+    var tx=db.transaction(IMGST,"readwrite");
+    tx.objectStore(IMGST).put(dataUrl, id);
+    tx.oncomplete=function(){ db.close(); if(done) done(true); };
+    tx.onerror=function(){ db.close(); if(done) done(false); };
+  }, function(){ if(done) done(false); });
+}
+function imgDel(ids){
+  if(!ids || !ids.length) return;
+  ids.forEach(function(id){ delete imgCache[id]; });
+  withDB(function(db){
+    var tx=db.transaction(IMGST,"readwrite"), st=tx.objectStore(IMGST);
+    ids.forEach(function(id){ st.delete(id); });
+    tx.oncomplete=function(){ db.close(); };
+  });
+}
+function imgLoadAll(done){
+  withDB(function(db){
+    var tx=db.transaction(IMGST,"readonly"), st=tx.objectStore(IMGST);
+    var ks=st.getAllKeys(), vs=st.getAll();
+    tx.oncomplete=function(){
+      var k=ks.result||[], v=vs.result||[];
+      for(var i=0;i<k.length;i++) imgCache[k[i]]=v[i];
+      db.close(); done();
+    };
+    tx.onerror=function(){ db.close(); done(); };
+  }, done);
+}
+/* Setzt die Bildquellen nach dem Zeichnen. Hält die erzeugten HTML-Zeichenketten
+   klein, weil die Base64-Daten nicht durch innerHTML laufen. */
+function paintImages(){
+  var els=root.querySelectorAll("img[data-img]");
+  for(var i=0;i<els.length;i++){
+    var id=els[i].getAttribute("data-img");
+    if(imgCache[id] && els[i].src!==imgCache[id]) els[i].src=imgCache[id];
+  }
+}
+/* Verkleinert auf 1200 px längste Kante. Ein iPhone-Foto von 4 MB landet damit
+   bei etwa 200 kB, ohne dass die Ausführung unlesbar wird. */
+function shrink(file, cb){
+  var url=URL.createObjectURL(file), im=new Image();
+  im.onload=function(){
+    var max=1200, w=im.naturalWidth, h=im.naturalHeight;
+    var s=Math.min(1, max/Math.max(w,h));
+    var c=document.createElement("canvas");
+    c.width=Math.max(1,Math.round(w*s)); c.height=Math.max(1,Math.round(h*s));
+    try{
+      var ctx=c.getContext("2d");
+      ctx.fillStyle="#fff"; ctx.fillRect(0,0,c.width,c.height);
+      ctx.drawImage(im,0,0,c.width,c.height);
+      URL.revokeObjectURL(url);
+      cb(c.toDataURL("image/jpeg",0.72));
+    }catch(e){ URL.revokeObjectURL(url); cb(null); }
+  };
+  im.onerror=function(){ URL.revokeObjectURL(url); cb(null); };
+  im.src=url;
+}
+function allImageIds(){
+  var out=[];
+  data.days.forEach(function(d){ d.exercises.forEach(function(e){ (e.images||[]).forEach(function(i){ out.push(i); }); }); });
+  return out;
+}
+
+function ex(o){
+  return {id:o.id||uid("e"), name:o.name, subtitle:o.subtitle||"", sets:o.sets||3,
+    targetReps:o.targetReps||"", unit:o.unit||"reps", perSide:!!o.perSide,
+    rir:o.rir||"", gear:o.gear||"machine", bar:(o.bar===undefined?null:o.bar),
+    muscles:o.muscles||"", cues:o.cues||[], images:o.images||[]};
+}
+
+function seed(){
+  return {version:2, sessions:[], days:[
+    {id:"dayA", name:"Einheit A", note:"Mo · Fr im Wechsel A–B–A", exercises:[
+      ex({id:"exSquat", gear:"barbell", name:"Langhantel-Kniebeuge", subtitle:"Back Squat", sets:3, targetReps:"5", rir:"2–4 RIR", bar:20,
+        muscles:"Quadrizeps · Gluteus maximus · Adduktoren · Rumpf",
+        cues:["Füße schulterbreit, 15–30° ausgedreht","Mindestens bis zur Parallele beugen","Knie folgen der Fußspitzenrichtung","Rumpf durchgehend unter Spannung"]}),
+      ex({id:"exBench", gear:"barbell", name:"Bankdrücken", subtitle:"Barbell Bench Press", sets:3, targetReps:"6–8", rir:"1–3 RIR", bar:20,
+        muscles:"Pectoralis major · vorderer Deltamuskel · Trizeps",
+        cues:["Schulterblätter fixiert, Füße fest am Boden","Mittlerer Griff als Standard","Ellbogen 45–70° zum Rumpf","Voller Bewegungsumfang, kein Abfedern"]}),
+      ex({id:"exRow", gear:"barbell", name:"Vorgebeugtes Langhantelrudern", subtitle:"Bent-Over Barbell Row", sets:3, targetReps:"8", rir:"1–2 RIR", bar:20,
+        muscles:"Latissimus · Rhomboiden · mittlerer Trapezius · Erector spinae",
+        cues:["Hüftbeuge ca. 45°, neutrale Wirbelsäule","Stange zum unteren Brustbein ziehen","Kein Rückschwung aus der Hüfte","Bei Beschwerden der Lendenwirbelsäule: Inverted Row"]}),
+      ex({id:"exNordic", gear:"bodyweight", name:"Nordic Hamstring Curl", subtitle:"Nordic Hamstring Exercise", sets:2, targetReps:"4–8", rir:"", bar:null,
+        muscles:"Ischiocrurale Muskulatur (exzentrisch) · Gesäß · Rumpf",
+        cues:["Unterschenkel fixieren, Hüfte gestreckt halten","So langsam wie möglich nach vorne absenken","Mit den Händen abfangen und aktiv hochdrücken","Einstieg mit Band- oder Partnerhilfe"]}),
+      ex({id:"exCarry", gear:"dumbbell", name:"Farmer's Walk", subtitle:"Loaded Carry", sets:3, targetReps:"30", unit:"distance", rir:"", bar:null,
+        muscles:"Rumpfstabilisatoren · Griffkraft · Trapezius · Beine",
+        cues:["Brustbein hoch, Schultern nach hinten unten","Kurze, kontrollierte Schritte","Becken waagerecht, gegen die Seitneigung arbeiten","Erst Distanz steigern, dann Gewicht"]})
+    ]},
+    {id:"dayB", name:"Einheit B", note:"Mi · Folgewoche B–A–B", exercises:[
+      ex({id:"exDead", gear:"barbell", name:"Kreuzheben", subtitle:"Deadlift", sets:3, targetReps:"4", rir:"2–3 RIR", bar:20,
+        muscles:"Hüftstrecker · Erector spinae · Quadrizeps · Griffkraft",
+        cues:["Hantel über dem Mittelfuß, Schultern senkrecht darüber","Neutrale Wirbelsäule, Latissimus aktiv","Hüfte und Knie gleichzeitig strecken","Variante nach Hebelverhältnissen wählen"]}),
+      ex({id:"exOhp", gear:"barbell", name:"Schulterdrücken über Kopf", subtitle:"Overhead Press", sets:3, targetReps:"6–8", rir:"1–3 RIR", bar:20,
+        muscles:"Deltamuskel (alle Anteile) · Trizeps · Rumpf · Gesäß",
+        cues:["Gesäß und Rumpf fest, Rippenbogen unten","Kopf leicht zurück für senkrechte Hantelbahn","Oben Schultern aktiv ausdrehen","Frontvariante statt Nackendrücken"]}),
+      ex({id:"exPull", gear:"bodyweight", name:"Klimmzug", subtitle:"Pull-up / Chin-up", sets:3, targetReps:"6–10", rir:"0–2 RIR", bar:null,
+        muscles:"Latissimus dorsi · Bizeps · unterer Trapezius · Rumpf",
+        cues:["Voller Hang, Schulterblätter zuerst nach unten","Brust zur Stange, Ellbogen nach hinten unten","Rumpf unter Spannung, kein Schwung","Progression: Band → exzentrisch → Zusatzlast"]}),
+      ex({id:"exSplit", gear:"dumbbell", name:"Einbeinige Kniebeuge", subtitle:"Bulgarian Split Squat", sets:3, targetReps:"8–12", perSide:true, rir:"1–2 RIR", bar:null,
+        muscles:"Quadrizeps · Gluteus maximus · Gluteus medius · Rumpf",
+        cues:["Hinteres Bein ca. 30–40 cm erhöht","Schrittlänge steuert Quadrizeps- oder Gesäßbetonung","Becken waagerecht halten","Kontrollierte Exzentrik, kein Abfedern"]}),
+      ex({id:"exThrust", gear:"barbell", name:"Hip Thrust", subtitle:"Barbell Hip Thrust", sets:3, targetReps:"8–15", rir:"0–2 RIR", bar:20,
+        muscles:"Gluteus maximus · ischiocrurale Muskulatur",
+        cues:["Bank an der unteren Schulterblattkante","Schienbeine oben senkrecht","Becken leicht nach hinten kippen, Rippen unten","Kurze Pause in der Endposition"]})
+    ]}
+  ]};
+}
+
+/* ---------- Personen ---------- */
+var people = readLS(PKEY);
+if(!people || !Array.isArray(people.list) || !people.list.length){
+  // Bestände aus früheren Fassungen übernehmen, statt sie stehen zu lassen:
+  // erst der unbenannte Speicher vor der Trennung, dann der vor der
+  // Mehrpersonen-Fassung.
+  var altPeople = readLS("kraft.people");
+  if(altPeople && Array.isArray(altPeople.list) && altPeople.list.length){
+    people = altPeople;
+    people.list.forEach(function(p){
+      var alt = readLS("kraft.v1."+p.id);
+      if(alt) writeLS(NS+"v1."+p.id, alt);
+      var lauf = readLS("kraft.v1."+p.id+".active");
+      if(lauf) writeLS(NS+"v1."+p.id+".active", lauf);
+    });
+  } else {
+    people = {list:[{id:"p1", name:"Ich"}], activeId:"p1", updatedAt:Date.now()};
+    var altbestand = readLS("kraft.v1");
+    if(altbestand) writeLS(NS+"v1.p1", altbestand);
+  }
+  writeLS(PKEY, people);
+}
+function savePeople(){ people.updatedAt=Date.now(); writeLS(PKEY, people); }
+function person(id){ for(var i=0;i<people.list.length;i++) if(people.list[i].id===id) return people.list[i]; return null; }
+function activePerson(){ return person(people.activeId) || people.list[0]; }
+
+var data;
+function useKeys(){ KEY=NS+"v1."+people.activeId; AKEY=KEY+".active"; }
+function loadPerson(){
+  useKeys();
+  data = readLS(KEY);
+  if(!data || !Array.isArray(data.days)) data = seed();
+  normalize(data);
+  migrate2();
+  // Sofort ablegen, nicht erst bei der ersten Änderung: sonst zeigt die
+  // Personenliste für frische Personen null Trainingstage an.
+  save();
+}
+if(!person(people.activeId)) people.activeId = people.list[0].id;
+loadPerson();
+/* Bis Fassung 1 war im Gewichtsfeld die Gesamtlast gemeint, ab Fassung 2 nur
+   noch das Scheibengewicht. Aufgezeichnete Sätze werden deshalb einmalig um
+   das Stangengewicht verringert. Werte, die dabei auf null oder darunter
+   fielen, waren keine Gesamtlasten und bleiben unangetastet. */
+function migrate2(){
+  if((data.version||1) >= 2) return;
+  var bars={};
+  data.days.forEach(function(d){ d.exercises.forEach(function(e){
+    if(e.gear==="barbell" && e.bar!=null) bars[e.id]=e.bar;
+  }); });
+  data.sessions.forEach(function(s){ s.entries.forEach(function(en){
+    var b=bars[en.exerciseId];
+    if(b==null) return;
+    en.gear="barbell"; en.bar=b;
+    en.sets.forEach(function(x){
+      if(x.weight!=null && x.weight>b) x.weight=Math.round((x.weight-b)*100)/100;
+    });
+  }); });
+  data.version=2;
+  save();
+}
+function normalize(o){
+  if(!Array.isArray(o.sessions)) o.sessions=[];
+  o.days.forEach(function(d){
+    if(!Array.isArray(d.exercises)) d.exercises=[];
+    d.exercises.forEach(function(e){
+      if(!Array.isArray(e.images)) e.images=[];
+      if(!Array.isArray(e.cues)) e.cues=[];
+      // Ältere Datensätze kannten nur das Stangengewicht. Wo eines steht, war
+      // es eine Langhantel; alles andere landet neutral beim Gerät.
+      if(!GEAR[e.gear]) e.gear = (e.bar!=null ? "barbell" : "machine");
+    });
+  });
+  return o;
+}
+function save(){ writeLS(KEY, data); }
+
+var ui = {view:"home", edit:false, dayId:null, openEx:null, exIndex:0, openSession:null, dlg:null};
+var run = readLS(AKEY);
+if(run && run.dayId && findDay(run.dayId)){ ui.view="workout"; ui.dayId=run.dayId; ui.exIndex=run.exIndex||0; }
+else run = null;
+function saveRun(){ if(run){ run.exIndex = ui.exIndex; writeLS(AKEY, run); } }
+
+/* ---------- Helfer ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]; }); }
+function findDay(id){ for(var i=0;i<data.days.length;i++) if(data.days[i].id===id) return data.days[i]; return null; }
+function unitLabel(u){ return u==="distance"?"m":u==="time"?"s":"Wdh."; }
+function num(v){ var n=parseFloat(String(v).replace(",",".")); return isFinite(n)?n:null; }
+function fmt(n){ return String(Math.round(n*100)/100).replace(".",","); }
+
+function lastEntry(exId){
+  for(var i=data.sessions.length-1;i>=0;i--){
+    var e=data.sessions[i].entries;
+    for(var j=0;j<e.length;j++) if(e[j].exerciseId===exId && e[j].sets.length) return e[j];
+  }
+  return null;
+}
+function setsText(entry, unit){
+  if(!entry||!entry.sets.length) return "";
+  var ul=unitLabel(unit);
+  return entry.sets.map(function(s){
+    var a = (s.reps==null?"–":fmt(s.reps)) + (unit==="reps" ? "" : " "+ul);
+    if(s.weight==null) return unit==="reps" ? a+" "+ul : a;
+    return a+" × "+fmt(s.weight)+" kg";
+  }).join("  ·  ");
+}
+function lastTrained(dayId){
+  for(var i=data.sessions.length-1;i>=0;i--) if(data.sessions[i].dayId===dayId) return data.sessions[i].finishedAt;
+  return null;
+}
+function agoText(ts){
+  if(!ts) return "noch nicht trainiert";
+  var d=Math.floor((Date.now()-ts)/86400000);
+  if(d<=0) return "heute trainiert";
+  if(d===1) return "gestern trainiert";
+  return "vor "+d+" Tagen trainiert";
+}
+function dateText(ts){
+  var d=new Date(ts);
+  return d.toLocaleDateString("de-DE",{weekday:"short",day:"2-digit",month:"2-digit",year:"2-digit"});
+}
+var PLATES=[25,20,15,10,5,2.5,1.25];
+/* Eingetragen wird das Scheibengewicht, nicht die Gesamtlast: die Stange steht
+   einmal an der Übung. Diese Zeile rechnet beides aus — was auf der Stange
+   liegt, und wie es sich auf die zwei Seiten verteilt. */
+function plateText(plates, bar){
+  var p=num(plates);
+  if(p==null || p<0) return "";
+  var b=(bar==null?0:bar);
+  // Knapp halten, damit die Zeile unter der Satzzeile nicht umbricht. Dass die
+  // Stange nicht mitgetippt wird, steht bereits über den Sätzen.
+  var kopf=fmt(p+b)+" kg gesamt";
+  if(p===0) return kopf+" · nur die Stange";
+  var rest=p/2, out=[];
+  for(var i=0;i<PLATES.length;i++){
+    var c=Math.floor((rest+1e-9)/PLATES[i]);
+    if(c>0){ out.push((c>1?c+"×":"")+fmt(PLATES[i])); rest-=c*PLATES[i]; }
+  }
+  var seite=out.join(" ")||"–";
+  if(rest>0.01) seite+=" (Rest "+fmt(rest*2)+" kg)";
+  return kopf+" · je Seite "+seite;
+}
+/* Zeile unter dem Gewichtsfeld. Je Ausrüstung eine andere Rechnung. */
+function loadHint(e, w){
+  var n=num(w);
+  if(e.gear==="barbell") return plateText(w, e.bar);
+  if(n==null || n<=0) return "";
+  if(e.gear==="dumbbell") return "2 × "+fmt(n)+" kg  =  "+fmt(n*2)+" kg gesamt";
+  if(e.gear==="bodyweight") return "Körpergewicht + "+fmt(n)+" kg Zusatzlast";
+  return "";
+}
+/* Tatsächlich bewegte Last. Nur fürs Volumen, nie für die Anzeige eines Satzes:
+   angezeigt wird immer das, was eingetragen wurde. */
+function totalKg(gear, bar, w){
+  if(w==null) return null;
+  return gear==="barbell" ? w+(bar==null?0:bar) : w;
+}
+/* Was im Gewichtsfeld erwartet wird. Beantwortet die Frage vor dem ersten Satz,
+   nicht erst hinterher. */
+function entryHint(e){
+  if(e.gear==="barbell") return "Eintragen: nur die Scheiben, ohne die "+fmt(e.bar==null?0:e.bar)+"-kg-Stange.";
+  if(e.gear==="dumbbell") return "Eintragen: das Gewicht, das auf der Hantel steht.";
+  if(e.gear==="bodyweight") return "Eintragen: nur die Zusatzlast, falls du mit Gewicht arbeitest.";
+  return "";
+}
+/* Beim Körpergewicht ist die Zahl eine Zulage, keine absolute Last. */
+function weightLabel(gear){ return gear==="bodyweight" ? "+kg" : "kg"; }
+
+/* ---------- Ansichten ---------- */
+function view_home(){
+  var body="";
+  if(run){
+    var rd=findDay(run.dayId);
+    body+='<div class="resume"><p class="eyebrow">Laufende Einheit</p><div class="resume-row">'+
+      '<span class="resume-name">'+esc(rd?rd.name:run.dayName)+'</span>'+
+      '<button data-act="resume">Fortsetzen</button>'+
+      '<button class="x" data-act="discard">Verwerfen</button></div></div>';
+  }
+  body+='<button class="whopill" data-act="people">'+
+    '<span class="who-ini">'+esc(initials(activePerson().name))+'</span>'+
+    '<span class="who-name">'+esc(activePerson().name)+'</span>'+
+    '<span class="who-more">wechseln</span></button>';
+  body+='<p class="eyebrow">'+(ui.edit?"Bearbeiten · tippen zum Öffnen":"Trainingstag wählen")+'</p><div class="days">';
+  if(!data.days.length) body+='<div class="card"><p class="empty">Noch kein Trainingstag angelegt.</p></div>';
+  data.days.forEach(function(d,i){
+    var cnt=d.exercises.length;
+    body+='<div class="day"><button class="day-main" data-act="'+(ui.edit?"editday":"start")+'" data-id="'+d.id+'">'+
+      '<span class="day-name">'+esc(d.name)+'</span>'+
+      (d.note?'<span class="day-note">'+esc(d.note)+'</span>':'')+
+      '<span class="day-meta"><b>'+cnt+'</b> '+(cnt===1?"Übung":"Übungen")+
+      '<span>·</span><span>'+esc(agoText(lastTrained(d.id)))+'</span></span></button>';
+    if(ui.edit){
+      body+='<div class="day-tools">'+
+        '<button data-act="moveday" data-id="'+d.id+'" data-dir="-1" aria-label="nach oben"'+(i===0?" disabled":"")+'>▲</button>'+
+        '<button data-act="delday" data-id="'+d.id+'" aria-label="löschen">✕</button>'+
+        '<button data-act="moveday" data-id="'+d.id+'" data-dir="1" aria-label="nach unten"'+(i===data.days.length-1?" disabled":"")+'>▼</button></div>';
+    } else {
+      body+='<span class="day-go" aria-hidden="true">›</span>';
+    }
+    body+='</div>';
+  });
+  body+='</div>';
+  if(ui.edit) body+='<button class="addbtn" data-act="adddayn">+ Trainingstag anlegen</button>';
+  body+='<div class="foot"><button data-act="history">Verlauf</button><button data-act="backup">Übergeben</button></div>';
+
+  return shell(
+    logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span><span class="sub">'+esc(UNTERTITEL)+'</span></h1>'+
+    '<button class="iconbtn'+(ui.edit?" on":"")+'" data-act="toggleedit">'+(ui.edit?"Fertig":"Bearbeiten")+'</button>',
+    body, "");
+}
+
+function logo(cls){
+  return '<span class="'+cls+'"><svg viewBox="0 0 158 164" aria-hidden="true" focusable="false">'+
+    '<use href="#panthera"></use></svg></span>';
+}
+
+function initials(n){
+  var t=String(n||"?").trim().split(/\s+/);
+  return ((t[0]||"?").charAt(0)+(t.length>1?t[t.length-1].charAt(0):"")).toUpperCase();
+}
+
+function view_people(){
+  var body='<p class="muted">Jede Person hat ihren eigenen Plan, ihren eigenen Verlauf und ihre eigenen Bilder. Nichts davon vermischt sich.</p>';
+  body+='<div class="card">';
+  people.list.forEach(function(p,i){
+    var aktiv=(p.id===people.activeId);
+    // Für die aktive Person den Stand im Speicher nehmen, für die übrigen den
+    // abgelegten. Sonst hinkt die Zeile einer gerade gemachten Änderung nach.
+    var d = aktiv ? data : readLS(NS+"v1."+p.id);
+    var tage=(d&&d.days)?d.days.length:0, log=(d&&d.sessions)?d.sessions.length:0;
+    body+='<div class="prow'+(aktiv?" on":"")+'">'+
+      '<button class="prow-main" data-act="switchp" data-id="'+p.id+'">'+
+        '<span class="who-ini">'+esc(initials(p.name))+'</span>'+
+        '<span class="prow-txt"><b>'+esc(p.name)+'</b>'+
+        '<i>'+(p.id===people.activeId?"aktiv · ":"")+tage+(tage===1?" Trainingstag":" Trainingstage")+' · '+log+(log===1?" Einheit":" Einheiten")+'</i></span>'+
+      '</button>'+
+      '<div class="prow-tools">'+
+        '<button data-act="renamep" data-id="'+p.id+'" aria-label="umbenennen">✎</button>'+
+        '<button data-act="delp" data-id="'+p.id+'" aria-label="entfernen"'+(people.list.length<2?" disabled":"")+'>✕</button>'+
+      '</div></div>';
+  });
+  body+='</div><button class="addbtn" data-act="addp">+ Person hinzufügen</button>';
+  body+='<p class="tiny">Über „Übergeben" im Startbildschirm bekommst du den Plan der aktiven Person als Text. Auf dem anderen Gerät dort einfügen und auf „Plan übernehmen" tippen — der Verlauf dort bleibt erhalten.</p>';
+  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
+    '<h1>Wer trainiert?<span class="sub">Personen verwalten</span></h1>', body, '');
+}
+
+function view_editday(){
+  var d=findDay(ui.dayId); if(!d) return goHome();
+  var body='<div class="expand" style="border-radius:10px;border:1px solid var(--line)">'+
+    '<div class="f"><label for="dn">Name des Trainingstags</label><input id="dn" type="text" data-bind="day.name" value="'+esc(d.name)+'"></div>'+
+    '<div class="f"><label for="dnote">Notiz</label><input id="dnote" type="text" data-bind="day.note" value="'+esc(d.note||"")+'" placeholder="z. B. Mo · Fr"></div></div>';
+
+  body+='<p class="eyebrow">Übungen in Reihenfolge</p><div class="card">';
+  if(!d.exercises.length) body+='<p class="empty">Noch keine Übung in diesem Tag.</p>';
+  d.exercises.forEach(function(e,i){
+    var open = ui.openEx===e.id;
+    body+='<div class="exrow"><button class="exrow-main" data-act="openex" data-id="'+e.id+'">'+
+      '<span class="exrow-name">'+esc(e.name)+'</span>'+
+      '<span class="exrow-meta">'+e.sets+' × '+esc(e.targetReps||"–")+' '+unitLabel(e.unit)+
+      (e.perSide?" je Seite":"")+(e.rir?"  ·  "+esc(e.rir):"")+
+      (e.images.length?'  ·  '+e.images.length+(e.images.length===1?" Bild":" Bilder"):"")+'</span></button>'+
+      '<div class="exrow-tools">'+
+      '<button data-act="moveex" data-id="'+e.id+'" data-dir="-1" aria-label="nach oben"'+(i===0?" disabled":"")+'>▲</button>'+
+      '<button data-act="moveex" data-id="'+e.id+'" data-dir="1" aria-label="nach unten"'+(i===d.exercises.length-1?" disabled":"")+'>▼</button>'+
+      '<button data-act="openex" data-id="'+e.id+'" aria-label="bearbeiten">'+(open?"▾":"✎")+'</button></div></div>';
+    if(open) body+=exEditor(e);
+  });
+  body+='</div><button class="addbtn" data-act="addex">+ Übung hinzufügen</button>';
+
+  return shell(
+    '<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
+    '<h1>'+esc(d.name)+'<span class="sub">Plan bearbeiten</span></h1>',
+    body, '<button class="btn" data-act="home">Fertig</button>');
+}
+
+function exEditor(e){
+  return '<div class="expand">'+
+    '<div class="f"><label>Übung</label><input type="text" data-bind="ex.name" data-id="'+e.id+'" value="'+esc(e.name)+'"></div>'+
+    '<div class="f"><label>Untertitel</label><input type="text" data-bind="ex.subtitle" data-id="'+e.id+'" value="'+esc(e.subtitle)+'" placeholder="englischer Name, optional"></div>'+
+    '<div class="frow">'+
+      '<div class="f"><label>Sätze</label><div class="stepper">'+
+        '<button data-act="sets" data-id="'+e.id+'" data-dir="-1" aria-label="weniger Sätze">−</button>'+
+        '<span>'+e.sets+'</span>'+
+        '<button data-act="sets" data-id="'+e.id+'" data-dir="1" aria-label="mehr Sätze">+</button></div></div>'+
+      '<div class="f"><label>Ziel</label><input type="text" data-bind="ex.targetReps" data-id="'+e.id+'" value="'+esc(e.targetReps)+'" placeholder="6–8"></div>'+
+      '<div class="f"><label>Einheit</label><select data-bind="ex.unit" data-id="'+e.id+'">'+
+        '<option value="reps"'+(e.unit==="reps"?" selected":"")+'>Wdh.</option>'+
+        '<option value="distance"'+(e.unit==="distance"?" selected":"")+'>Meter</option>'+
+        '<option value="time"'+(e.unit==="time"?" selected":"")+'>Sekunden</option></select></div>'+
+    '</div>'+
+    '<div class="f"><label>RIR</label><input type="text" data-bind="ex.rir" data-id="'+e.id+'" value="'+esc(e.rir)+'" placeholder="2–4 RIR"></div>'+
+    '<div class="f"><label>Ausrüstung</label><div class="seg">'+
+      GEAR_ORDER.map(function(g){
+        return '<button class="'+(e.gear===g?"on":"")+'" data-act="gear" data-id="'+e.id+'" data-g="'+g+'"'+
+          (e.gear===g?' aria-pressed="true"':' aria-pressed="false"')+'>'+GEAR[g]+'</button>';
+      }).join("")+
+    '</div></div>'+
+    (e.gear==="barbell"
+      ? '<div class="f"><label>Stangengewicht in kg</label><input type="text" inputmode="decimal" data-bind="ex.bar" data-id="'+e.id+'" value="'+(e.bar==null?"":esc(fmt(e.bar)))+'" placeholder="20">'+
+        '<p class="fnote">Einmal hier eintragen. Im Training gibst du nur noch das Scheibengewicht ein, die Stange zählt die App dazu.</p></div>'
+      : '')+
+    '<label class="check"><input type="checkbox" data-bind="ex.perSide" data-id="'+e.id+'"'+(e.perSide?" checked":"")+'> Angabe gilt je Seite</label>'+
+    '<div class="f"><label>Zielmuskulatur</label><input type="text" data-bind="ex.muscles" data-id="'+e.id+'" value="'+esc(e.muscles)+'"></div>'+
+    '<div class="f"><label>Ausführung — ein Hinweis je Zeile</label><textarea data-bind="ex.cues" data-id="'+e.id+'">'+esc(e.cues.join("\n"))+'</textarea></div>'+
+    imgSlots(e)+
+    '<button class="btn dgr sm" style="align-self:flex-start" data-act="delex" data-id="'+e.id+'">Übung löschen</button>'+
+  '</div>';
+}
+
+function imgSlots(e){
+  var out='<div class="f"><label>Bilder zur Ausführung — höchstens zwei</label><div class="imgs">';
+  for(var i=0;i<2;i++){
+    var id=e.images[i];
+    if(id && !imgCache[id]){
+      // Kommt vor, wenn der Plan von einem anderen Gerät stammt: die Kennung
+      // steht im Plan, die Bilddaten liegen dort, wo das Foto entstand.
+      out+='<div class="slot has"><em>Bild liegt auf einem anderen Gerät</em>'+
+        '<button class="del" data-act="delimg" data-id="'+e.id+'" data-slot="'+i+'" aria-label="Platz freigeben">✕</button></div>';
+    } else if(id){
+      out+='<div class="slot has"><img data-img="'+id+'" alt="Ausführung: '+esc(e.name)+'">'+
+        '<button class="del" data-act="delimg" data-id="'+e.id+'" data-slot="'+i+'" aria-label="Bild entfernen">✕</button></div>';
+    } else if(ui.busySlot===e.id+":"+i){
+      out+='<div class="slot busy"><em>wird verkleinert …</em></div>';
+    } else {
+      out+='<label class="slot"><em>+ Bild<br>wählen</em>'+
+        '<input type="file" accept="image/*" data-slot="'+i+'" data-id="'+e.id+'" aria-label="Bild '+(i+1)+' wählen"></label>';
+    }
+  }
+  return out+'</div></div>';
+}
+
+function view_workout(){
+  var d=findDay(ui.dayId); if(!d||!d.exercises.length) return goHome();
+  if(ui.exIndex>=d.exercises.length) ui.exIndex=d.exercises.length-1;
+  var e=d.exercises[ui.exIndex];
+  var vals=run.entries[e.id]||(run.entries[e.id]=[]);
+  var prev=lastEntry(e.id);
+  var ul=unitLabel(e.unit), wl=weightLabel(e.gear);
+
+  var steps='<div class="steps">';
+  d.exercises.forEach(function(x,i){
+    var filled=(run.entries[x.id]||[]).some(function(s){return s&&(s.reps!=null||s.weight!=null)});
+    steps+='<i class="'+(i===ui.exIndex?"now":(filled?"done":""))+'"></i>';
+  });
+  steps+='</div>';
+
+  var body=steps+'<p class="eyebrow">Übung '+(ui.exIndex+1)+' von '+d.exercises.length+'</p>'+
+    '<div class="exhead"><h2 class="exname">'+esc(e.name)+'</h2>'+
+    (e.subtitle?'<p class="exsub">'+esc(e.subtitle)+'</p>':'')+
+    (e.muscles?'<p class="exmus">'+esc(e.muscles)+'</p>':'')+
+    '<div class="target"><span class="chip key">'+e.sets+' × '+esc(e.targetReps||"–")+' '+ul+'</span>'+
+    '<span class="chip">'+esc(GEAR[e.gear]||GEAR.machine)+'</span>'+
+    (e.perSide?'<span class="chip">je Seite</span>':'')+
+    (e.rir?'<span class="chip">'+esc(e.rir)+'</span>':'')+'</div>'+
+    (entryHint(e)?'<p class="entryhint">'+esc(entryHint(e))+'</p>':'')+'</div>';
+
+  body+='<div class="sets">';
+  for(var i=0;i<e.sets;i++){
+    var v=vals[i]||{reps:null,weight:null};
+    var ph=prev&&prev.sets[i]?prev.sets[i]:null;
+    var filled=(v.reps!=null||v.weight!=null);
+    body+='<div class="setrow'+(filled?" filled":"")+'" data-row="'+i+'">'+
+      '<span class="setno">'+(i+1)+'</span>'+
+      '<span class="field"><input type="text" inputmode="numeric" data-f="reps" data-i="'+i+'" data-ex="'+e.id+'" value="'+(v.reps==null?"":esc(fmt(v.reps)))+'" placeholder="'+(ph&&ph.reps!=null?esc(fmt(ph.reps)):"–")+'" aria-label="Satz '+(i+1)+' '+ul+'"><span>'+ul+'</span></span>'+
+      '<span class="field"><input type="text" inputmode="decimal" data-f="weight" data-i="'+i+'" data-ex="'+e.id+'" value="'+(v.weight==null?"":esc(fmt(v.weight)))+'" placeholder="'+(ph&&ph.weight!=null?esc(fmt(ph.weight)):"–")+'" aria-label="Satz '+(i+1)+' '+(e.gear==="bodyweight"?"Zusatzlast in Kilogramm":"Kilogramm")+'"><span>'+wl+'</span></span>'+
+      '</div>'+
+      '<div class="plates" data-plates="'+i+'">'+esc(loadHint(e, v.weight))+'</div>';
+  }
+  body+='</div>';
+
+  body+='<div class="lastline"><p'+(prev?"":' class="prose"')+'>'+
+    (prev?"Zuletzt: "+esc(setsText(prev,e.unit)):"Diese Übung wird hier zum ersten Mal aufgezeichnet.")+'</p>'+
+    (prev?'<button class="btn sec sm" data-act="copylast">Wie zuletzt</button>':'')+'</div>';
+
+  var pics=e.images.filter(function(id){ return imgCache[id]; });
+  if(e.cues.length || pics.length){
+    var label=[];
+    if(e.cues.length) label.push(e.cues.length+" "+(e.cues.length===1?"Hinweis":"Hinweise"));
+    if(pics.length) label.push(pics.length+" "+(pics.length===1?"Bild":"Bilder"));
+    body+='<details class="cues"'+(ui.cuesOpen?" open":"")+'><summary>Ausführung · '+label.join(" · ")+'</summary>';
+    if(e.cues.length){
+      body+='<ul>';
+      e.cues.forEach(function(c){ body+='<li>'+esc(c)+'</li>'; });
+      body+='</ul>';
+    }
+    if(pics.length){
+      body+='<div class="cueimgs">';
+      pics.forEach(function(id){
+        body+='<button data-act="zoom" data-id="'+id+'" aria-label="Bild vergrößern"><img data-img="'+id+'" alt=""></button>';
+      });
+      body+='</div>';
+    } else {
+      body+='<p class="cuehint">Für diese Übung sind noch keine Bilder hinterlegt. '+
+        'Zwei Bilder lassen sich im Startbildschirm über <b>Bearbeiten</b> anlegen: Trainingstag antippen, '+
+        'Übung antippen, dann ganz unten im Formular.</p>';
+    }
+    body+='</details>';
+  }
+
+  var last=(ui.exIndex===d.exercises.length-1);
+  return shell(
+    '<button class="iconbtn ghost nav" data-act="prevex" aria-label="vorherige Übung"'+(ui.exIndex===0?" disabled":"")+'>‹</button>'+
+    '<h1>'+esc(d.name)+'<span class="sub">Training läuft</span></h1>'+
+    '<button class="iconbtn" data-act="askstop">Abbrechen</button>',
+    body,
+    '<button class="btn" data-act="'+(last?"finish":"nextex")+'">'+(last?"Einheit abschließen":"Weiter")+' →</button>');
+}
+
+function view_summary(){
+  var s=ui.summary; if(!s) return goHome();
+  var mins=Math.max(1,Math.round((s.finishedAt-s.startedAt)/60000));
+  var vol=0, cnt=0;
+  s.entries.forEach(function(en){
+    en.sets.forEach(function(x){
+      cnt++;
+      // Volumen nur aus Wiederholungen mal Last. Meter und Sekunden gehören nicht in eine kg-Summe.
+      // Bei der Langhantel zählt die Stange mit, sonst fiele das Volumen allein
+      // dadurch, dass sie getrennt eingetragen wird.
+      if((en.unit||"reps")==="reps" && x.reps!=null && x.weight!=null){
+        vol += x.reps * totalKg(en.gear, en.bar, x.weight);
+      }
+    });
+  });
+
+  var body='<div class="sumhead">'+
+    '<svg class="watermark" viewBox="0 0 158 164" aria-hidden="true" focusable="false"><use href="#panthera"></use></svg>'+
+    '<p class="eyebrow">Abgeschlossen · '+esc(dateText(s.finishedAt))+'</p>'+
+    '<h2 class="exname">'+esc(s.dayName)+'</h2></div>'+
+    '<div class="stats">'+
+    '<div class="stat"><b>'+cnt+'</b><span>Sätze</span></div>'+
+    '<div class="stat"><b>'+mins+'</b><span>'+(mins===1?"Minute":"Minuten")+'</span></div>'+
+    '<div class="stat"><b>'+(vol?fmt(Math.round(vol)):"–")+'</b><span>kg Volumen</span></div></div>';
+
+  body+='<div class="card">';
+  s.entries.forEach(function(en){
+    var d=deltaFor(en, s.id);
+    body+='<div class="sumex"><div class="sumex-h"><b>'+esc(en.name)+'</b>'+
+      (d?'<span class="delta '+d.cls+'">'+esc(d.text)+'</span>':'')+'</div>'+
+      '<p>'+esc(setsText(en, en.unit||"reps"))+'</p>'+
+      (d&&d.prevText?'<p class="prev">vorher: '+esc(d.prevText)+'</p>':'')+'</div>';
+  });
+  body+='</div>';
+
+  return shell('<h1>Geschafft<span class="sub">Zusammenfassung</span></h1>', body,
+    '<button class="btn" data-act="home">Zur Übersicht</button>');
+}
+
+function deltaFor(entry, skipSessionId){
+  var prev=null;
+  for(var i=data.sessions.length-1;i>=0;i--){
+    if(data.sessions[i].id===skipSessionId) continue;
+    var es=data.sessions[i].entries;
+    for(var j=0;j<es.length;j++) if(es[j].exerciseId===entry.exerciseId && es[j].sets.length){ prev=es[j]; break; }
+    if(prev) break;
+  }
+  if(!prev) return {cls:"flat", text:"neu", prevText:""};
+  var a=top(entry), b=top(prev);
+  var out={prevText:setsText(prev, prev.unit||"reps")};
+  if(a.w!=null&&b.w!=null&&a.w!==b.w){ out.cls=a.w>b.w?"up":"down"; out.text=(a.w>b.w?"+":"−")+fmt(Math.abs(a.w-b.w))+" kg"; return out; }
+  if(a.r!=null&&b.r!=null&&a.r!==b.r){ out.cls=a.r>b.r?"up":"down"; out.text=(a.r>b.r?"+":"−")+fmt(Math.abs(a.r-b.r))+" "+unitLabel(entry.unit||"reps"); return out; }
+  out.cls="flat"; out.text="gehalten"; return out;
+}
+function top(entry){
+  var w=null,r=null;
+  entry.sets.forEach(function(s){
+    if(s.weight!=null&&(w==null||s.weight>w)) w=s.weight;
+    if(s.reps!=null&&(r==null||s.reps>r)) r=s.reps;
+  });
+  return {w:w,r:r};
+}
+
+function view_history(){
+  var body='<p class="eyebrow">'+data.sessions.length+' abgeschlossene '+(data.sessions.length===1?"Einheit":"Einheiten")+'</p><div class="card">';
+  if(!data.sessions.length) body+='<p class="empty">Noch keine Einheit abgeschlossen.</p>';
+  for(var i=data.sessions.length-1;i>=0;i--){
+    var s=data.sessions[i], open=ui.openSession===s.id, sets=0;
+    s.entries.forEach(function(e){ sets+=e.sets.length; });
+    body+='<button class="hrow" data-act="opensession" data-id="'+s.id+'"><b>'+esc(s.dayName)+'</b>'+
+      '<span>'+esc(dateText(s.finishedAt))+'  ·  '+sets+' Sätze</span></button>';
+    if(open){
+      body+='<div class="hdet">';
+      s.entries.forEach(function(e){
+        body+='<div><i>'+esc(e.name)+'</i><span>'+esc(setsText(e, e.unit||"reps"))+'</span></div>';
+      });
+      body+='</div>';
+    }
+  }
+  body+='</div>';
+  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button><h1>Verlauf<span class="sub">alle Einheiten</span></h1>',
+    body, '');
+}
+
+function backupText(withImgs){
+  var p={version:data.version, days:data.days, sessions:data.sessions};
+  if(withImgs){
+    var m={}; allImageIds().forEach(function(id){ if(imgCache[id]) m[id]=imgCache[id]; });
+    p._images=m;
+  }
+  return JSON.stringify(p);
+}
+function sizeText(n){
+  return n>1048576 ? fmt(Math.round(n/104858)/10)+" MB" : Math.max(1,Math.round(n/1024))+" kB";
+}
+/* Nur der Plan, ohne Verlauf und ohne Bilder. Das ist der Text, der zwischen
+   den Geräten wandert: der Empfänger bekommt die Übungen, behält aber seine
+   eigenen aufgezeichneten Einheiten. */
+function planText(){
+  return JSON.stringify({_plan:1, von:activePerson().name, days:data.days});
+}
+function view_backup(){
+  var planMode = ui.bkMode!=="full";
+  var n=allImageIds().length;
+  var txt = planMode ? planText() : backupText(!!ui.bkImgs);
+
+  var body='<div class="f"><label>Was soll in den Text?</label><div class="seg">'+
+    '<button class="'+(planMode?"on":"")+'" data-act="bkmode" data-m="plan">Nur der Plan</button>'+
+    '<button class="'+(planMode?"":"on")+'" data-act="bkmode" data-m="full">Alles</button>'+
+    '</div></div>';
+
+  body+= planMode
+    ? '<p class="muted">Der Plan von <b>'+esc(activePerson().name)+'</b> zum Weitergeben. Text kopieren, an das andere Gerät schicken, dort hier einfügen und übernehmen. Der Verlauf des Empfängers bleibt unangetastet, Bilder wandern nicht mit.</p>'
+    : '<p class="muted">Der gesamte Bestand dieser Person, mit Verlauf. Zum Sichern kopieren und ablegen. Ein eingefügter Text ersetzt alles.</p>';
+
+  body+='<div class="f"><label>Text</label><textarea id="bk" style="min-height:180px;font-family:\'IBM Plex Mono\',monospace;font-size:12px">'+esc(txt)+'</textarea></div>';
+
+  if(!planMode){
+    body+='<label class="check"><input type="checkbox" id="bkimg"'+(ui.bkImgs?" checked":"")+(n?"":" disabled")+'> Bilder mitsichern</label>';
+  }
+  body+='<p class="tiny" id="bksize">'+esc(sizeText(txt.length))+
+    (planMode
+      ? ' · '+data.days.length+(data.days.length===1?" Trainingstag":" Trainingstage")+
+        (n?" · "+n+(n===1?" Bild bleibt":" Bilder bleiben")+" auf diesem Gerät":"")
+      : ' · '+(n===0 ? "keine Bilder hinterlegt"
+                     : (ui.bkImgs ? n+(n===1?" Bild ist":" Bilder sind")+" enthalten"
+                                  : n+(n===1?" Bild bleibt":" Bilder bleiben")+" außen vor — der Text wird sonst zu groß zum Kopieren")))+'</p>'+
+    '<div class="frow"><button class="btn sec" data-act="copyjson">Kopieren</button>'+
+    '<button class="btn sec" data-act="importjson">'+(planMode?"Plan übernehmen":"Übernehmen")+'</button></div>'+
+    '<p class="tiny" id="bkmsg"></p>'+
+    '<button class="btn dgr" data-act="askreset" style="margin-top:6px">Diese Person zurücksetzen</button>';
+
+  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
+    '<h1>Übergeben<span class="sub">'+esc(activePerson().name)+'</span></h1>', body, '');
+}
+
+function shell(bar, body, dock){
+  return '<header class="bar">'+bar+'</header><main class="scroll">'+body+'</main><footer class="dock">'+(dock||"")+'</footer>'+dialog()+lightbox();
+}
+function lightbox(){
+  if(!ui.zoom || !imgCache[ui.zoom]) return "";
+  return '<div class="lb" data-act="closezoom"><img data-img="'+ui.zoom+'" alt="Ausführung">'+
+    '<button class="close" data-act="closezoom" aria-label="schließen">✕</button></div>';
+}
+function dialog(){
+  if(!ui.dlg) return "";
+  var d=ui.dlg;
+  return '<div class="veil" data-act="dlgno"><div class="dlg" data-stop="1"><p>'+esc(d.text)+'</p>'+
+    (d.input!=null?'<input class="dlginput" id="dlgin" type="text" value="'+esc(d.input)+'" placeholder="'+esc(d.ph||"")+'">':'')+
+    '<div class="row"><button class="btn sec" data-act="dlgno">Zurück</button>'+
+    '<button class="btn'+(d.danger?" dgr":"")+'" data-act="dlgyes">'+esc(d.yes)+'</button></div></div></div>';
+}
+function ask(text, yes, fn, danger){ ui.dlg={text:text, yes:yes, fn:fn, danger:danger}; render(); }
+function askText(text, value, yes, ph, fn){ ui.dlg={text:text, input:value||"", yes:yes, ph:ph, fn:fn}; render(); }
+
+/* ---------- Zeichnen ---------- */
+var root=document.getElementById("root");
+function render(){
+  var sc=root.querySelector(".scroll"), y=sc?sc.scrollTop:0;
+  var html;
+  if(ui.view==="editday") html=view_editday();
+  else if(ui.view==="workout") html=view_workout();
+  else if(ui.view==="summary") html=view_summary();
+  else if(ui.view==="history") html=view_history();
+  else if(ui.view==="backup") html=view_backup();
+  else if(ui.view==="people") html=view_people();
+  else html=view_home();
+  root.innerHTML=html;
+  var sc2=root.querySelector(".scroll");
+  if(sc2 && ui.keepScroll) sc2.scrollTop=y;
+  ui.keepScroll=false;
+  paintImages();
+  var inp=document.getElementById("dlgin");
+  if(inp){ inp.focus(); inp.select(); }
+}
+function goHome(){ ui.view="home"; ui.dayId=null; ui.openEx=null; render(); return ""; }
+
+/* ---------- Eingaben ohne Neuzeichnen ---------- */
+root.addEventListener("input", function(ev){
+  var t=ev.target, b=t.getAttribute("data-bind");
+  if(b){
+    var d=findDay(ui.dayId); if(!d) return;
+    if(b==="day.name"){ d.name=t.value; }
+    else if(b==="day.note"){ d.note=t.value; }
+    else {
+      var e=null, id=t.getAttribute("data-id");
+      d.exercises.forEach(function(x){ if(x.id===id) e=x; });
+      if(!e) return;
+      var f=b.slice(3);
+      if(f==="cues") e.cues=t.value.split("\n").map(function(s){return s.trim()}).filter(Boolean);
+      else if(f==="bar") e.bar=num(t.value);
+      else if(f==="perSide") e.perSide=t.checked;
+      else e[f]=t.value;
+    }
+    save(); return;
+  }
+  var f2=t.getAttribute("data-f");
+  if(f2 && run){
+    var exId=t.getAttribute("data-ex"), i=+t.getAttribute("data-i");
+    var arr=run.entries[exId]||(run.entries[exId]=[]);
+    while(arr.length<=i) arr.push({reps:null,weight:null});
+    arr[i][f2]=num(t.value);
+    var row=t.closest(".setrow");
+    if(row) row.classList.toggle("filled", arr[i].reps!=null||arr[i].weight!=null);
+    if(f2==="weight"){
+      var day=findDay(ui.dayId), ex2=null;
+      if(day) day.exercises.forEach(function(x){ if(x.id===exId) ex2=x; });
+      var p=root.querySelector('[data-plates="'+i+'"]');
+      if(p&&ex2) p.textContent=loadHint(ex2, arr[i].weight);
+    }
+    saveRun();
+  }
+}, true);
+
+root.addEventListener("change", function(ev){
+  var t=ev.target;
+  var b=t.getAttribute("data-bind");
+  if(b==="ex.unit"||b==="ex.perSide"){ ui.keepScroll=true; render(); return; }
+  if(t.id==="bkimg"){ ui.bkImgs=t.checked; ui.keepScroll=true; render(); return; }
+
+  if(t.type==="file" && t.hasAttribute("data-slot")){
+    var file=t.files && t.files[0]; if(!file) return;
+    var exId=t.getAttribute("data-id"), slot=+t.getAttribute("data-slot");
+    var d=findDay(ui.dayId), e=null;
+    if(d) d.exercises.forEach(function(x){ if(x.id===exId) e=x; });
+    if(!e) return;
+    ui.busySlot=exId+":"+slot; ui.keepScroll=true; render();
+    shrink(file, function(url){
+      ui.busySlot=null;
+      if(!url){ ui.keepScroll=true; render(); ask("Diese Datei ließ sich nicht als Bild lesen. HEIC-Aufnahmen wandelt das iPhone beim Auswählen normalerweise selbst um.","Verstanden",function(){}); return; }
+      var id=uid("i");
+      imgPut(id, url, function(ok){
+        if(!ok){ ui.keepScroll=true; render(); ask("Das Bild ließ sich nicht speichern. Der Speicher des Browsers ist vermutlich voll.","Verstanden",function(){}); return; }
+        imgCache[id]=url;
+        while(e.images.length<slot) e.images.push(null);
+        var alt=e.images[slot];
+        e.images[slot]=id;
+        e.images=e.images.filter(Boolean);
+        if(alt) imgDel([alt]);
+        save(); ui.keepScroll=true; render();
+      });
+    });
+  }
+}, true);
+
+/* <details> meldet sein Auf und Zu nicht nach oben, deshalb mit capture. */
+root.addEventListener("toggle", function(ev){
+  if(ev.target.classList && ev.target.classList.contains("cues")) ui.cuesOpen=ev.target.open;
+}, true);
+
+/* ---------- Klicks ---------- */
+root.addEventListener("click", function(ev){
+  var el=ev.target.closest("[data-act]");
+  if(!el || el.disabled) return;
+  if(el.classList.contains("veil") && ev.target.closest("[data-stop]")) return;
+  var act=el.getAttribute("data-act"), id=el.getAttribute("data-id"), dir=+el.getAttribute("data-dir");
+  var d=findDay(ui.dayId);
+
+  if(act==="dlgno"){ ui.dlg=null; render(); return; }
+  if(act==="dlgyes"){
+    var inp=document.getElementById("dlgin");
+    var val=inp?inp.value:null, fn=ui.dlg.fn;
+    ui.dlg=null; fn(val); return;
+  }
+
+  if(act==="people"){ ui.view="people"; render(); return; }
+  if(act==="switchp"){
+    if(id!==people.activeId){
+      people.activeId=id; savePeople(); loadPerson();
+      run=readLS(AKEY);
+      if(!(run && run.dayId && findDay(run.dayId))) run=null;
+      ui.dayId=null; ui.openEx=null; ui.exIndex=0; ui.edit=false; ui.summary=null; ui.openSession=null;
+    }
+    ui.view="home"; render(); return;
+  }
+  if(act==="addp"){
+    askText("Wie heißt die Person?","","Anlegen","Name",function(name){
+      name=(name||"").trim(); if(!name){ render(); return; }
+      var np={id:uid("p"), name:name};
+      people.list.push(np); people.activeId=np.id; savePeople();
+      loadPerson(); save();            // frischer Ausgangsplan für die neue Person
+      run=null; ui.dayId=null; ui.edit=false; ui.view="home"; render();
+    });
+    return;
+  }
+  if(act==="renamep"){
+    var pr=person(id); if(!pr) return;
+    askText("Name der Person",pr.name,"Speichern","Name",function(name){
+      name=(name||"").trim(); if(name) pr.name=name;
+      savePeople(); render();
+    });
+    return;
+  }
+  if(act==="delp"){
+    var pd=person(id); if(!pd || people.list.length<2) return;
+    ask('„'+pd.name+'“ mit Plan, Verlauf und Bildern löschen? Das lässt sich nicht rückgängig machen.',"Löschen",function(){
+      var fremd=readLS(NS+"v1."+id), weg=[];
+      if(fremd && fremd.days) fremd.days.forEach(function(dd){ dd.exercises.forEach(function(xx){ weg=weg.concat(xx.images||[]); }); });
+      imgDel(weg);
+      delLS(NS+"v1."+id); delLS(NS+"v1."+id+".active");
+      people.list=people.list.filter(function(x){ return x.id!==id; });
+      if(people.activeId===id){
+        people.activeId=people.list[0].id;
+        loadPerson(); run=null; ui.dayId=null; ui.edit=false;
+      }
+      savePeople(); render();
+    },true);
+    return;
+  }
+
+  if(act==="home"){ goHome(); return; }
+  if(act==="toggleedit"){ ui.edit=!ui.edit; ui.openEx=null; render(); return; }
+  if(act==="history"){ ui.view="history"; ui.openSession=null; render(); return; }
+  if(act==="backup"){ ui.view="backup"; render(); return; }
+  if(act==="bkmode"){ ui.bkMode=el.getAttribute("data-m"); ui.keepScroll=true; render(); return; }
+  if(act==="opensession"){ ui.openSession = ui.openSession===id?null:id; ui.keepScroll=true; render(); return; }
+
+  if(act==="editday"){ ui.view="editday"; ui.dayId=id; ui.openEx=null; render(); return; }
+  if(act==="adddayn"){
+    data.days.push({id:uid("d"), name:"Neuer Trainingstag", note:"", exercises:[]});
+    save(); render(); return;
+  }
+  if(act==="moveday"){ moveIn(data.days, id, dir); save(); ui.keepScroll=true; render(); return; }
+  if(act==="delday"){
+    var dd=findDay(id);
+    ask('„'+(dd?dd.name:"")+'“ mit allen Übungen löschen? Aufgezeichnete Einheiten bleiben im Verlauf.', "Löschen", function(){
+      if(dd){ var weg=[]; dd.exercises.forEach(function(x){ weg=weg.concat(x.images||[]); }); imgDel(weg); }
+      data.days=data.days.filter(function(x){return x.id!==id});
+      if(run&&run.dayId===id){ run=null; delLS(AKEY); }
+      save(); render();
+    }, true); return;
+  }
+
+  if(act==="zoom"){ ui.zoom=id; render(); return; }
+  if(act==="closezoom"){ ui.zoom=null; ui.keepScroll=true; render(); return; }
+  if(act==="delimg"){
+    if(!d) return;
+    var ex3=null; d.exercises.forEach(function(x){ if(x.id===id) ex3=x; });
+    if(!ex3) return;
+    var slot=+el.getAttribute("data-slot"), gone=ex3.images[slot];
+    ex3.images.splice(slot,1);
+    imgDel([gone]); save(); ui.keepScroll=true; render(); return;
+  }
+
+  if(act==="openex"){ ui.openEx = ui.openEx===id?null:id; ui.keepScroll=true; render(); return; }
+  if(act==="addex"){
+    if(!d) return;
+    var ne=ex({name:"Neue Übung", sets:3, targetReps:"8–12"});
+    d.exercises.push(ne); ui.openEx=ne.id; save(); render(); return;
+  }
+  if(act==="moveex"){ if(d){ moveIn(d.exercises, id, dir); save(); ui.keepScroll=true; render(); } return; }
+  if(act==="delex"){
+    if(!d) return;
+    var ee=null; d.exercises.forEach(function(x){ if(x.id===id) ee=x; });
+    ask('Übung „'+(ee?ee.name:"")+'“ aus diesem Tag löschen?', "Löschen", function(){
+      if(ee) imgDel(ee.images||[]);
+      d.exercises=d.exercises.filter(function(x){return x.id!==id});
+      if(ui.openEx===id) ui.openEx=null;
+      save(); render();
+    }, true); return;
+  }
+  if(act==="gear"){
+    if(!d) return;
+    var g=el.getAttribute("data-g");
+    d.exercises.forEach(function(x){
+      if(x.id!==id) return;
+      x.gear=g;
+      // Beim Wechsel zur Langhantel eine übliche Stange vorschlagen, statt den
+      // Scheibenrechner ohne Grundgewicht stumm zu lassen.
+      if(g==="barbell" && x.bar==null) x.bar=20;
+      if(g!=="barbell") x.bar=null;
+    });
+    save(); ui.keepScroll=true; render(); return;
+  }
+  if(act==="sets"){
+    if(!d) return;
+    d.exercises.forEach(function(x){ if(x.id===id) x.sets=Math.max(1,Math.min(12,x.sets+dir)); });
+    save(); ui.keepScroll=true; render(); return;
+  }
+
+  if(act==="start"){
+    var day=findDay(id); if(!day||!day.exercises.length){ ask("Dieser Tag hat noch keine Übung. Zuerst im Bearbeiten-Modus anlegen.","Verstanden",function(){}); return; }
+    run={id:uid("s"), dayId:day.id, dayName:day.name, startedAt:Date.now(), exIndex:0, entries:{}};
+    ui.view="workout"; ui.dayId=day.id; ui.exIndex=0; saveRun(); render(); return;
+  }
+  if(act==="resume"){ ui.view="workout"; ui.dayId=run.dayId; ui.exIndex=run.exIndex||0; render(); return; }
+  if(act==="discard"){ ask("Laufende Einheit verwerfen? Die eingetragenen Werte gehen verloren.","Verwerfen",function(){ run=null; delLS(AKEY); render(); },true); return; }
+  if(act==="askstop"){ ask("Einheit abbrechen? Die eingetragenen Werte gehen verloren.","Verwerfen",function(){ run=null; delLS(AKEY); goHome(); },true); return; }
+  if(act==="prevex"){ if(ui.exIndex>0){ ui.exIndex--; saveRun(); render(); } return; }
+  if(act==="nextex"){ ui.exIndex++; saveRun(); render(); return; }
+  if(act==="copylast"){
+    var day2=findDay(ui.dayId), e2=day2.exercises[ui.exIndex], pv=lastEntry(e2.id);
+    if(pv){ run.entries[e2.id]=pv.sets.slice(0,e2.sets).map(function(s){return {reps:s.reps,weight:s.weight}}); saveRun(); render(); }
+    return;
+  }
+  if(act==="finish"){ finish(); return; }
+
+  if(act==="copyjson"){
+    var ta=document.getElementById("bk"); ta.select(); ta.setSelectionRange(0,999999);
+    var ok=false; try{ ok=document.execCommand("copy"); }catch(err){}
+    if(!ok && navigator.clipboard){ navigator.clipboard.writeText(ta.value).then(function(){ msg("In die Zwischenablage kopiert."); },function(){ msg("Kopieren nicht möglich. Text von Hand markieren."); }); return; }
+    msg(ok?"In die Zwischenablage kopiert.":"Kopieren nicht möglich. Text von Hand markieren."); return;
+  }
+  if(act==="importjson"){
+    var raw=document.getElementById("bk").value;
+    var parsed;
+    try{ parsed=JSON.parse(raw); }
+    catch(err){
+      var pos=/position (\d+)/.exec(err.message);
+      msg("Das ist kein gültiger Datensatz. Vermutlich wurde der Text unvollständig eingefügt"+
+          (pos?" — er bricht bei Zeichen "+pos[1]+" ab.":"."));
+      return;
+    }
+    if(!parsed||!Array.isArray(parsed.days)){ msg("Dem Datensatz fehlt die Liste der Trainingstage."); return; }
+
+    // Nur-Plan-Text: Übungen übernehmen, aufgezeichnete Einheiten behalten.
+    if(parsed._plan){
+      var tage=parsed.days.length;
+      ask("Plan"+(parsed.von?' von '+parsed.von:'')+" für "+activePerson().name+" übernehmen? "+
+          tage+(tage===1?" Trainingstag ersetzt":" Trainingstage ersetzen")+" den bisherigen Plan. "+
+          "Der Verlauf mit "+data.sessions.length+(data.sessions.length===1?" Einheit bleibt":" Einheiten bleibt")+" erhalten.",
+        "Plan übernehmen", function(){
+          data.days=parsed.days;
+          normalize(data);
+          run=null; delLS(AKEY);
+          save(); ui.view="home"; ui.dayId=null; ui.edit=false; render();
+        });
+      return;
+    }
+
+    var pics=parsed._images&&typeof parsed._images==="object"?parsed._images:null;
+    ask("Aktuellen Bestand durch den eingefügten Text ersetzen?"+
+        (pics?"":" Der Text enthält keine Bilder — bereits gespeicherte Bilder bleiben erhalten, sofern die Übungen dieselben sind."),
+      "Ersetzen",function(){
+        delete parsed._images;
+        data=normalize(parsed);
+        migrate2();
+        if(pics) Object.keys(pics).forEach(function(k){ imgCache[k]=pics[k]; imgPut(k,pics[k]); });
+        run=null; delLS(AKEY); save(); goHome();
+    },true); return;
+  }
+  if(act==="askreset"){
+    ask("Trainingstage, Bilder und Verlauf von "+activePerson().name+" löschen und den Ausgangsplan wiederherstellen? Andere Personen bleiben unberührt.","Zurücksetzen",function(){
+      imgDel(allImageIds());
+      data=seed(); run=null; delLS(AKEY); save(); goHome();
+    },true); return;
+  }
+});
+
+function msg(t){ var m=document.getElementById("bkmsg"); if(m) m.textContent=t; }
+function moveIn(arr,id,dir){
+  var i=-1; arr.forEach(function(x,k){ if(x.id===id) i=k; });
+  var j=i+dir; if(i<0||j<0||j>=arr.length) return;
+  var tmp=arr[i]; arr[i]=arr[j]; arr[j]=tmp;
+}
+
+function finish(){
+  var d=findDay(ui.dayId);
+  var s={id:run.id, dayId:d.id, dayName:d.name, startedAt:run.startedAt, finishedAt:Date.now(), entries:[]};
+  d.exercises.forEach(function(e){
+    var arr=(run.entries[e.id]||[]).slice(0,e.sets)
+      .filter(function(x){ return x && (x.reps!=null||x.weight!=null); })
+      .map(function(x){ return {reps:x.reps, weight:x.weight}; });
+    // gear und bar mitschreiben: die Übung kann später umgestellt werden, die
+    // Aufzeichnung muss trotzdem verständlich bleiben.
+    if(arr.length) s.entries.push({exerciseId:e.id, name:e.name, unit:e.unit, gear:e.gear, bar:e.bar, sets:arr});
+  });
+  if(!s.entries.length){
+    ask("Es ist kein einziger Wert eingetragen. Einheit trotzdem verwerfen?","Verwerfen",function(){
+      run=null; delLS(AKEY); goHome();
+    },true);
+    return;
+  }
+  data.sessions.push(s);
+  if(data.sessions.length>100) data.sessions=data.sessions.slice(-100);
+  save(); run=null; delLS(AKEY);
+  ui.summary=s; ui.view="summary"; render();
+}
+
+render();
+imgLoadAll(function(){ ui.keepScroll=true; render(); });
+})();
+</script>
+<script>
+// Service Worker anmelden. Schlaegt es fehl, laeuft die App trotzdem — nur ohne
+// Offline-Betrieb. Deshalb ohne Fehlermeldung an den Nutzer.
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

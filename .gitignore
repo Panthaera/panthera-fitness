@@ -1,0 +1,10 @@
+# Fruehere Bauschritte, durch build_site.py abgeloest. Liegen noch auf der
+# Platte, gehoeren aber nicht mehr ins Repository.
+dist/
+variants/
+build_local.py
+build_variants.py
+
+__pycache__/
+*.pyc
+_server.log
