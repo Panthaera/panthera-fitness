@@ -50,14 +50,19 @@ button{cursor:pointer;background:none;border:none;padding:0}
 .bar::after{content:"";position:absolute;left:0;right:0;bottom:-1px;height:1px;background:var(--neon);opacity:.55}
 .bar h1{
   font-family:Oswald,"IBM Plex Sans",sans-serif; font-weight:600;
-  font-size:20px; letter-spacing:.02em; margin:0; flex:1;
+  font-size:20px; letter-spacing:.02em; margin:0; flex:1; min-width:0;
   text-transform:uppercase; line-height:1.2;
 }
+/* Auf der Startseite doppelt so hoch; dort steht der Schriftzug in zwei Zeilen,
+   weil er einzeilig neben dem Zeichen nicht mehr auf ein Telefon passt. */
+.wordmark.gross{font-size:clamp(30px,8.8vw,38px)}
+.bar h1 .wordmark.gross+.sub{font-size:22px}
 .bar .sub{display:block;font-family:"IBM Plex Sans",sans-serif;font-weight:400;font-size:11px;letter-spacing:.09em;color:var(--ink-3);text-transform:uppercase}
 
 /* ---- Marke ---- */
 .defs{position:absolute;width:0;height:0;overflow:hidden}
 .mark{flex:0 0 auto;display:block;width:34px;height:34px;position:relative}
+.mark.gross{width:68px;height:68px}
 .mark svg{width:100%;height:100%;display:block;fill:url(#pgrad)}
 /* Der Schimmer sitzt hinter dem Zeichen, nicht darauf — sonst frisst er die Kontur. */
 .mark::before{
@@ -65,10 +70,11 @@ button{cursor:pointer;background:none;border:none;padding:0}
   background:radial-gradient(circle,rgba(0,194,255,.45),rgba(255,43,176,.28) 55%,transparent 72%);
   filter:blur(6px);
 }
+.mark.gross::before{inset:-12px;filter:blur(12px)}
 .wordmark{
   font-family:Oswald,sans-serif; font-weight:600; line-height:1.15;
-  /* Passt sich der Gerätebreite an, damit „Panthera Fitness" auch auf einem
-     iPhone SE in einer Zeile bleibt. */
+  /* Passt sich der Gerätebreite an, damit der Schriftzug auch auf einem
+     iPhone SE in eine Zeile passt. */
   font-size:clamp(15px,4.4vw,19px); white-space:nowrap;
   letter-spacing:.05em; text-transform:uppercase; display:block;
   background:var(--neon); -webkit-background-clip:text; background-clip:text;
@@ -312,6 +318,10 @@ details.cues li{font-size:14px;color:var(--ink-2)}
 
 .empty{padding:28px 16px;text-align:center;color:var(--ink-3);font-size:14px}
 .foot{display:flex;gap:8px;padding-top:2px}
+.footedit{display:flex;justify-content:center;padding-top:10px}
+.editbtn{min-height:44px;padding:0 22px;border:1px solid var(--danger);border-radius:var(--r);
+  font-size:14px;font-weight:600;color:var(--danger);background:transparent}
+.editbtn.on{background:rgba(255,77,109,.12)}
 .foot button{flex:1;min-height:44px;border:1px solid var(--line);border-radius:var(--r);font-size:14px;font-weight:600;color:var(--ink-2);background:var(--surface)}
 
 /* ---- Dialog ---- */
@@ -735,11 +745,13 @@ function view_home(){
   body+='</div>';
   if(ui.edit) body+='<button class="addbtn" data-act="adddayn">+ Trainingstag anlegen</button>';
   body+='<div class="foot"><button data-act="history">Verlauf</button><button data-act="backup">Übergeben</button></div>';
+  body+='<div class="footedit"><button class="editbtn'+(ui.edit?" on":"")+'" data-act="toggleedit">'+
+    (ui.edit?"Bearbeitungsmodus beenden":"Bearbeitungsmodus")+'</button></div>';
 
   return shell(
-    logo("mark")+
-    '<h1><span class="wordmark">Panthera Fitness</span><span class="sub">'+esc(UNTERTITEL)+'</span></h1>'+
-    '<button class="iconbtn'+(ui.edit?" on":"")+'" data-act="toggleedit">'+(ui.edit?"Fertig":"Bearbeiten")+'</button>',
+    logo("mark gross")+
+    '<h1><span class="wordmark gross">Panthera</span><span class="wordmark gross">Fitness</span>'+
+      '<span class="sub">'+esc(UNTERTITEL)+'</span></h1>',
     body, "");
 }
 
@@ -773,7 +785,9 @@ function view_editday(){
 
   return shell(
     '<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
-    '<h1>'+esc(d.name)+'<span class="sub">Plan bearbeiten</span></h1>',
+    logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span>'+
+      '<span class="sub">'+esc(d.name)+'</span></h1>',
     body, '<button class="btn" data-act="home">Fertig</button>');
 }
 
@@ -904,7 +918,9 @@ function view_workout(){
   var last=(ui.exIndex===d.exercises.length-1);
   return shell(
     '<button class="iconbtn ghost nav" data-act="prevex" aria-label="vorherige Übung"'+(ui.exIndex===0?" disabled":"")+'>‹</button>'+
-    '<h1>'+esc(d.name)+'<span class="sub">Training läuft</span></h1>'+
+    logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span>'+
+      '<span class="sub">'+esc(d.name)+'</span></h1>'+
     '<button class="iconbtn" data-act="askstop">Abbrechen</button>',
     body,
     '<button class="btn" data-act="'+(last?"finish":"nextex")+'">'+(last?"Einheit abschließen":"Weiter")+' →</button>');
@@ -945,7 +961,9 @@ function view_summary(){
   });
   body+='</div>';
 
-  return shell('<h1>Geschafft<span class="sub">Zusammenfassung</span></h1>', body,
+  return shell(logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span>'+
+      '<span class="sub">'+"Geschafft"+'</span></h1>', body,
     '<button class="btn" data-act="home">Zur Übersicht</button>');
 }
 
@@ -990,7 +1008,10 @@ function view_history(){
     }
   }
   body+='</div>';
-  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button><h1>Verlauf<span class="sub">alle Einheiten</span></h1>',
+  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
+    logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span>'+
+      '<span class="sub">'+"Verlauf"+'</span></h1>',
     body, '');
 }
 
@@ -1045,7 +1066,9 @@ function view_backup(){
     '<button class="btn dgr" data-act="askreset" style="margin-top:6px">Alles zurücksetzen</button>';
 
   return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
-    '<h1>Übergeben<span class="sub">'+esc(HOMETITEL)+'</span></h1>', body, '');
+    logo("mark")+
+    '<h1><span class="wordmark">Panthera Fitness</span>'+
+      '<span class="sub">'+"Übergeben"+'</span></h1>', body, '');
 }
 
 function shell(bar, body, dock){

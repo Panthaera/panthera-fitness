@@ -1,11 +1,11 @@
 /* Service Worker fuer Panthera Fitness für Addy.
-   Fassung fa37f5a5a8 — aendert sich bei jedem Bau, dadurch raeumt der Browser
+   Fassung 06617e45f0 — aendert sich bei jedem Bau, dadurch raeumt der Browser
    den alten Zwischenspeicher auf.
 
    Seitenaufrufe zuerst aus dem Netz, mit kurzem Zeitlimit und Rueckfall auf den
    Zwischenspeicher: online bekommt man immer den neuesten Stand, im Studio ohne
    Empfang oeffnet die App trotzdem. Alles andere zuerst aus dem Zwischenspeicher. */
-const CACHE = "panthera-addy-fa37f5a5a8";
+const CACHE = "panthera-addy-06617e45f0";
 const SCHALE = ["./", "./index.html", "./manifest.webmanifest",
   "../icons/apple-touch-icon.png", "../icons/icon-192.png", "../icons/icon-512.png"];
 const NETZ_ZEITLIMIT = 2500;
