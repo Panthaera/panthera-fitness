@@ -261,6 +261,8 @@ details.cues li{font-size:14px;color:var(--ink-2)}
 }
 .f textarea{min-height:100px;resize:vertical;line-height:1.5;font-size:15px}
 .fnote{margin:2px 0 0;font-size:12.5px;color:var(--ink-3);line-height:1.45}
+/* Beschriftung links, kleine Schaltflaeche rechts auf derselben Hoehe. */
+.lblrow{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:40px}
 .f input:focus,.f select:focus,.f textarea:focus{border-color:var(--focus)}
 .frow{display:flex;gap:10px}
 .frow>.f{flex:1;min-width:0}
@@ -1014,16 +1016,18 @@ function view_backup(){
   var n=allImageIds().length;
   var txt = planMode ? planText() : backupText(!!ui.bkImgs);
 
-  var body='<div class="f"><label>Was soll in den Text?</label><div class="seg">'+
-    '<button class="'+(planMode?"on":"")+'" data-act="bkmode" data-m="plan">Nur der Plan</button>'+
-    '<button class="'+(planMode?"":"on")+'" data-act="bkmode" data-m="full">Alles</button>'+
+  var body='<div class="f"><label>Wofür ist der Text?</label><div class="seg">'+
+    '<button class="'+(planMode?"on":"")+'" data-act="bkmode" data-m="plan">Plan weitergeben</button>'+
+    '<button class="'+(planMode?"":"on")+'" data-act="bkmode" data-m="full">Sicherung</button>'+
     '</div></div>';
 
   body+= planMode
     ? '<p class="muted">Der Plan zum Weitergeben. Text kopieren, an das andere Gerät schicken, dort hier einfügen und übernehmen. Der Verlauf des Empfängers bleibt unangetastet, Bilder wandern nicht mit.</p>'
     : '<p class="muted">Der gesamte Bestand mit Verlauf. Zum Sichern kopieren und ablegen. Ein eingefügter Text ersetzt alles.</p>';
 
-  body+='<div class="f"><label>Text</label><textarea id="bk" style="min-height:180px;font-family:\'IBM Plex Mono\',monospace;font-size:12px">'+esc(txt)+'</textarea></div>';
+  body+='<div class="f"><div class="lblrow"><label>Text</label>'+
+    '<button class="btn sec sm" data-act="clearbk">Leeren</button></div>'+
+    '<textarea id="bk" style="min-height:180px;font-family:\'IBM Plex Mono\',monospace;font-size:12px">'+esc(txt)+'</textarea></div>';
 
   if(!planMode){
     body+='<label class="check"><input type="checkbox" id="bkimg"'+(ui.bkImgs?" checked":"")+(n?"":" disabled")+'> Bilder mitsichern</label>';
@@ -1251,6 +1255,16 @@ root.addEventListener("click", function(ev){
   }
   if(act==="finish"){ finish(); return; }
 
+  /* Das Textfeld steht beim Oeffnen voll mit dem eigenen Plan. Wer einen Text vom
+     anderen Geraet einfuegen will, muesste ihn erst von Hand markieren und loeschen —
+     auf dem Telefon umstaendlich. Diese Schaltflaeche nimmt das ab. */
+  if(act==="clearbk"){
+    var tal=document.getElementById("bk");
+    if(tal){ tal.value=""; tal.focus(); }
+    var gr=document.getElementById("bksize");
+    if(gr) gr.textContent="Textfeld leer — den empfangenen Text einfügen und übernehmen.";
+    msg(""); return;
+  }
   if(act==="copyjson"){
     var ta=document.getElementById("bk"); ta.select(); ta.setSelectionRange(0,999999);
     var ok=false; try{ ok=document.execCommand("copy"); }catch(err){}

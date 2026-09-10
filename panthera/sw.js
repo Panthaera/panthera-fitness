@@ -1,11 +1,11 @@
 /* Service Worker fuer Panthera Fitness.
-   Fassung 5e5046f072 — aendert sich bei jedem Bau, dadurch raeumt der Browser
+   Fassung fa37f5a5a8 — aendert sich bei jedem Bau, dadurch raeumt der Browser
    den alten Zwischenspeicher auf.
 
    Seitenaufrufe zuerst aus dem Netz, mit kurzem Zeitlimit und Rueckfall auf den
    Zwischenspeicher: online bekommt man immer den neuesten Stand, im Studio ohne
    Empfang oeffnet die App trotzdem. Alles andere zuerst aus dem Zwischenspeicher. */
-const CACHE = "panthera-panthera-5e5046f072";
+const CACHE = "panthera-panthera-fa37f5a5a8";
 const SCHALE = ["./", "./index.html", "./manifest.webmanifest",
   "../icons/apple-touch-icon.png", "../icons/icon-192.png", "../icons/icon-512.png"];
 const NETZ_ZEITLIMIT = 2500;
