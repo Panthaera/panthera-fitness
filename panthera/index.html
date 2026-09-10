@@ -144,28 +144,6 @@ button{cursor:pointer;background:none;border:none;padding:0}
 .tiny{color:var(--ink-3);font-size:12.5px;margin:0}
 
 /* ---- Person ---- */
-.whopill{
-  display:flex; align-items:center; gap:10px; width:100%; min-height:52px;
-  background:var(--surface); border:1px solid var(--line); border-radius:var(--r);
-  padding:8px 12px; text-align:left;
-}
-.who-ini{
-  flex:0 0 auto; width:32px; height:32px; border-radius:50%;
-  background:var(--neon); color:#04121A; font-family:Oswald,sans-serif; font-weight:600;
-  font-size:13px; letter-spacing:.03em; display:flex; align-items:center; justify-content:center;
-}
-.who-name{flex:1;font-weight:600;font-size:16px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.who-more{flex:0 0 auto;font-size:12.5px;color:var(--cyan);font-weight:600}
-.prow{display:flex;align-items:stretch;border-bottom:1px solid var(--line-2)}
-.prow:last-child{border-bottom:none}
-.prow.on{background:var(--ok-bg)}
-.prow-main{flex:1;display:flex;align-items:center;gap:11px;padding:12px 14px;text-align:left;min-width:0}
-.prow-txt{display:flex;flex-direction:column;gap:1px;min-width:0}
-.prow-txt b{font-size:15px;font-weight:600}
-.prow-txt i{font-style:normal;font-size:12.5px;color:var(--ink-3)}
-.prow-tools{flex:0 0 auto;display:flex;align-items:center}
-.prow-tools button{width:40px;min-height:44px;color:var(--ink-3);font-size:14px}
-
 /* ---- Tagesliste ---- */
 .days{display:flex;flex-direction:column;gap:10px}
 .day{
@@ -361,8 +339,6 @@ details.cues li{font-size:14px;color:var(--ink-2)}
 .dlg{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;max-width:340px;width:100%;display:flex;flex-direction:column;gap:14px}
 .dlg p{margin:0;font-size:15px;line-height:1.5}
 .dlg .row{display:flex;gap:8px}
-.dlginput{background:var(--surface-2);border:1px solid var(--line);border-radius:8px;padding:11px 12px;font-size:16px;min-height:44px;width:100%;outline:none}
-.dlginput:focus{border-color:var(--focus)}
 </style>
 
 <!-- Logo einmal als Symbol, überall per <use> eingesetzt. Steht bewusst außerhalb
@@ -576,7 +552,11 @@ function seed(){
   ]};
 }
 
-/* ---------- Personen ---------- */
+/* ---------- Speicherbereich ----------
+   Je Adresse trainiert genau eine Person, die Auswahl dafür ist mit zwei
+   getrennten Apps entfallen. Die Schlüsselform aus der Fassung mit Auswahl
+   bleibt trotzdem bestehen: ein Umbau würde bereits gespeicherte Pläne und
+   Verläufe umziehen müssen, ohne dass jemand etwas davon hätte. */
 var people = readLS(PKEY);
 if(!people || !Array.isArray(people.list) || !people.list.length){
   // Bestände aus früheren Fassungen übernehmen, statt sie stehen zu lassen:
@@ -598,9 +578,7 @@ if(!people || !Array.isArray(people.list) || !people.list.length){
   }
   writeLS(PKEY, people);
 }
-function savePeople(){ people.updatedAt=Date.now(); writeLS(PKEY, people); }
 function person(id){ for(var i=0;i<people.list.length;i++) if(people.list[i].id===id) return people.list[i]; return null; }
-function activePerson(){ return person(people.activeId) || people.list[0]; }
 
 var data;
 function useKeys(){ KEY=NS+"v1."+people.activeId; AKEY=KEY+".active"; }
@@ -755,10 +733,6 @@ function view_home(){
       '<button data-act="resume">Fortsetzen</button>'+
       '<button class="x" data-act="discard">Verwerfen</button></div></div>';
   }
-  body+='<button class="whopill" data-act="people">'+
-    '<span class="who-ini">'+esc(initials(activePerson().name))+'</span>'+
-    '<span class="who-name">'+esc(activePerson().name)+'</span>'+
-    '<span class="who-more">wechseln</span></button>';
   body+='<p class="eyebrow">'+(ui.edit?"Bearbeiten · tippen zum Öffnen":"Trainingstag wählen")+'</p><div class="days">';
   if(!data.days.length) body+='<div class="card"><p class="empty">Noch kein Trainingstag angelegt.</p></div>';
   data.days.forEach(function(d,i){
@@ -792,37 +766,6 @@ function view_home(){
 function logo(cls){
   return '<span class="'+cls+'"><svg viewBox="0 0 158 164" aria-hidden="true" focusable="false">'+
     '<use href="#panthera"></use></svg></span>';
-}
-
-function initials(n){
-  var t=String(n||"?").trim().split(/\s+/);
-  return ((t[0]||"?").charAt(0)+(t.length>1?t[t.length-1].charAt(0):"")).toUpperCase();
-}
-
-function view_people(){
-  var body='<p class="muted">Jede Person hat ihren eigenen Plan, ihren eigenen Verlauf und ihre eigenen Bilder. Nichts davon vermischt sich.</p>';
-  body+='<div class="card">';
-  people.list.forEach(function(p,i){
-    var aktiv=(p.id===people.activeId);
-    // Für die aktive Person den Stand im Speicher nehmen, für die übrigen den
-    // abgelegten. Sonst hinkt die Zeile einer gerade gemachten Änderung nach.
-    var d = aktiv ? data : readLS(NS+"v1."+p.id);
-    var tage=(d&&d.days)?d.days.length:0, log=(d&&d.sessions)?d.sessions.length:0;
-    body+='<div class="prow'+(aktiv?" on":"")+'">'+
-      '<button class="prow-main" data-act="switchp" data-id="'+p.id+'">'+
-        '<span class="who-ini">'+esc(initials(p.name))+'</span>'+
-        '<span class="prow-txt"><b>'+esc(p.name)+'</b>'+
-        '<i>'+(p.id===people.activeId?"aktiv · ":"")+tage+(tage===1?" Trainingstag":" Trainingstage")+' · '+log+(log===1?" Einheit":" Einheiten")+'</i></span>'+
-      '</button>'+
-      '<div class="prow-tools">'+
-        '<button data-act="renamep" data-id="'+p.id+'" aria-label="umbenennen">✎</button>'+
-        '<button data-act="delp" data-id="'+p.id+'" aria-label="entfernen"'+(people.list.length<2?" disabled":"")+'>✕</button>'+
-      '</div></div>';
-  });
-  body+='</div><button class="addbtn" data-act="addp">+ Person hinzufügen</button>';
-  body+='<p class="tiny">Über „Übergeben" im Startbildschirm bekommst du den Plan der aktiven Person als Text. Auf dem anderen Gerät dort einfügen und auf „Plan übernehmen" tippen — der Verlauf dort bleibt erhalten.</p>';
-  return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
-    '<h1>Wer trainiert?<span class="sub">Personen verwalten</span></h1>', body, '');
 }
 
 function view_editday(){
@@ -1086,7 +1029,7 @@ function sizeText(n){
    den Geräten wandert: der Empfänger bekommt die Übungen, behält aber seine
    eigenen aufgezeichneten Einheiten. */
 function planText(){
-  return JSON.stringify({_plan:1, von:activePerson().name, days:data.days});
+  return JSON.stringify({_plan:1, von:HOMETITEL, days:data.days});
 }
 function view_backup(){
   var planMode = ui.bkMode!=="full";
@@ -1099,8 +1042,8 @@ function view_backup(){
     '</div></div>';
 
   body+= planMode
-    ? '<p class="muted">Der Plan von <b>'+esc(activePerson().name)+'</b> zum Weitergeben. Text kopieren, an das andere Gerät schicken, dort hier einfügen und übernehmen. Der Verlauf des Empfängers bleibt unangetastet, Bilder wandern nicht mit.</p>'
-    : '<p class="muted">Der gesamte Bestand dieser Person, mit Verlauf. Zum Sichern kopieren und ablegen. Ein eingefügter Text ersetzt alles.</p>';
+    ? '<p class="muted">Der Plan zum Weitergeben. Text kopieren, an das andere Gerät schicken, dort hier einfügen und übernehmen. Der Verlauf des Empfängers bleibt unangetastet, Bilder wandern nicht mit.</p>'
+    : '<p class="muted">Der gesamte Bestand mit Verlauf. Zum Sichern kopieren und ablegen. Ein eingefügter Text ersetzt alles.</p>';
 
   body+='<div class="f"><label>Text</label><textarea id="bk" style="min-height:180px;font-family:\'IBM Plex Mono\',monospace;font-size:12px">'+esc(txt)+'</textarea></div>';
 
@@ -1117,10 +1060,10 @@ function view_backup(){
     '<div class="frow"><button class="btn sec" data-act="copyjson">Kopieren</button>'+
     '<button class="btn sec" data-act="importjson">'+(planMode?"Plan übernehmen":"Übernehmen")+'</button></div>'+
     '<p class="tiny" id="bkmsg"></p>'+
-    '<button class="btn dgr" data-act="askreset" style="margin-top:6px">Diese Person zurücksetzen</button>';
+    '<button class="btn dgr" data-act="askreset" style="margin-top:6px">Alles zurücksetzen</button>';
 
   return shell('<button class="iconbtn ghost nav" data-act="home" aria-label="zurück">‹</button>'+
-    '<h1>Übergeben<span class="sub">'+esc(activePerson().name)+'</span></h1>', body, '');
+    '<h1>Übergeben<span class="sub">'+esc(HOMETITEL)+'</span></h1>', body, '');
 }
 
 function shell(bar, body, dock){
@@ -1135,12 +1078,10 @@ function dialog(){
   if(!ui.dlg) return "";
   var d=ui.dlg;
   return '<div class="veil" data-act="dlgno"><div class="dlg" data-stop="1"><p>'+esc(d.text)+'</p>'+
-    (d.input!=null?'<input class="dlginput" id="dlgin" type="text" value="'+esc(d.input)+'" placeholder="'+esc(d.ph||"")+'">':'')+
     '<div class="row"><button class="btn sec" data-act="dlgno">Zurück</button>'+
     '<button class="btn'+(d.danger?" dgr":"")+'" data-act="dlgyes">'+esc(d.yes)+'</button></div></div></div>';
 }
 function ask(text, yes, fn, danger){ ui.dlg={text:text, yes:yes, fn:fn, danger:danger}; render(); }
-function askText(text, value, yes, ph, fn){ ui.dlg={text:text, input:value||"", yes:yes, ph:ph, fn:fn}; render(); }
 
 /* ---------- Zeichnen ---------- */
 var root=document.getElementById("root");
@@ -1152,15 +1093,12 @@ function render(){
   else if(ui.view==="summary") html=view_summary();
   else if(ui.view==="history") html=view_history();
   else if(ui.view==="backup") html=view_backup();
-  else if(ui.view==="people") html=view_people();
   else html=view_home();
   root.innerHTML=html;
   var sc2=root.querySelector(".scroll");
   if(sc2 && ui.keepScroll) sc2.scrollTop=y;
   ui.keepScroll=false;
   paintImages();
-  var inp=document.getElementById("dlgin");
-  if(inp){ inp.focus(); inp.select(); }
 }
 function goHome(){ ui.view="home"; ui.dayId=null; ui.openEx=null; render(); return ""; }
 
@@ -1246,56 +1184,7 @@ root.addEventListener("click", function(ev){
   var d=findDay(ui.dayId);
 
   if(act==="dlgno"){ ui.dlg=null; render(); return; }
-  if(act==="dlgyes"){
-    var inp=document.getElementById("dlgin");
-    var val=inp?inp.value:null, fn=ui.dlg.fn;
-    ui.dlg=null; fn(val); return;
-  }
-
-  if(act==="people"){ ui.view="people"; render(); return; }
-  if(act==="switchp"){
-    if(id!==people.activeId){
-      people.activeId=id; savePeople(); loadPerson();
-      run=readLS(AKEY);
-      if(!(run && run.dayId && findDay(run.dayId))) run=null;
-      ui.dayId=null; ui.openEx=null; ui.exIndex=0; ui.edit=false; ui.summary=null; ui.openSession=null;
-    }
-    ui.view="home"; render(); return;
-  }
-  if(act==="addp"){
-    askText("Wie heißt die Person?","","Anlegen","Name",function(name){
-      name=(name||"").trim(); if(!name){ render(); return; }
-      var np={id:uid("p"), name:name};
-      people.list.push(np); people.activeId=np.id; savePeople();
-      loadPerson(); save();            // frischer Ausgangsplan für die neue Person
-      run=null; ui.dayId=null; ui.edit=false; ui.view="home"; render();
-    });
-    return;
-  }
-  if(act==="renamep"){
-    var pr=person(id); if(!pr) return;
-    askText("Name der Person",pr.name,"Speichern","Name",function(name){
-      name=(name||"").trim(); if(name) pr.name=name;
-      savePeople(); render();
-    });
-    return;
-  }
-  if(act==="delp"){
-    var pd=person(id); if(!pd || people.list.length<2) return;
-    ask('„'+pd.name+'“ mit Plan, Verlauf und Bildern löschen? Das lässt sich nicht rückgängig machen.',"Löschen",function(){
-      var fremd=readLS(NS+"v1."+id), weg=[];
-      if(fremd && fremd.days) fremd.days.forEach(function(dd){ dd.exercises.forEach(function(xx){ weg=weg.concat(xx.images||[]); }); });
-      imgDel(weg);
-      delLS(NS+"v1."+id); delLS(NS+"v1."+id+".active");
-      people.list=people.list.filter(function(x){ return x.id!==id; });
-      if(people.activeId===id){
-        people.activeId=people.list[0].id;
-        loadPerson(); run=null; ui.dayId=null; ui.edit=false;
-      }
-      savePeople(); render();
-    },true);
-    return;
-  }
+  if(act==="dlgyes"){ var fn=ui.dlg.fn; ui.dlg=null; fn(); return; }
 
   if(act==="home"){ goHome(); return; }
   if(act==="toggleedit"){ ui.edit=!ui.edit; ui.openEx=null; render(); return; }
@@ -1405,7 +1294,7 @@ root.addEventListener("click", function(ev){
     // Nur-Plan-Text: Übungen übernehmen, aufgezeichnete Einheiten behalten.
     if(parsed._plan){
       var tage=parsed.days.length;
-      ask("Plan"+(parsed.von?' von '+parsed.von:'')+" für "+activePerson().name+" übernehmen? "+
+      ask("Plan"+(parsed.von?' von '+parsed.von:'')+" übernehmen? "+
           tage+(tage===1?" Trainingstag ersetzt":" Trainingstage ersetzen")+" den bisherigen Plan. "+
           "Der Verlauf mit "+data.sessions.length+(data.sessions.length===1?" Einheit bleibt":" Einheiten bleibt")+" erhalten.",
         "Plan übernehmen", function(){
@@ -1429,7 +1318,7 @@ root.addEventListener("click", function(ev){
     },true); return;
   }
   if(act==="askreset"){
-    ask("Trainingstage, Bilder und Verlauf von "+activePerson().name+" löschen und den Ausgangsplan wiederherstellen? Andere Personen bleiben unberührt.","Zurücksetzen",function(){
+    ask("Alle Trainingstage, Bilder und den gesamten Verlauf löschen und den Ausgangsplan wiederherstellen?","Zurücksetzen",function(){
       imgDel(allImageIds());
       data=seed(); run=null; delLS(AKEY); save(); goHome();
     },true); return;
